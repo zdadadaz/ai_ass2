@@ -27,5 +27,5 @@
 # number of obstacles
 2
 # x1, y1, x2, y2 for each obstacle
-0.3 0.0 0.7 0.3
+0.3 0.0 0.7 0.295
 0.4 0.6 0.6 1.0

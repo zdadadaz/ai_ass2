@@ -14,6 +14,9 @@ class ProblemSpec:
     Last updated by njc 24/08/19
     """
 
+    # max allowable error for floating point comparisons
+    TOLERANCE = 1e-5
+
     def __init__(self, input_file):
         # parse input file
         f = open(input_file, 'r')

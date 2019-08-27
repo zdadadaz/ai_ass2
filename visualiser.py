@@ -104,7 +104,10 @@ class Visualiser:
 
         self.drawn_objects = []
 
-        self.bg_img = image=tk.PhotoImage(file="assets/background_1.png")
+        try:
+            self.bg_img = tk.PhotoImage(file="assets/background_1.png")
+        except Exception:
+            self.bg_img = None
 
         self.render_environment()
         self.drawn_objects += self.render_robot(self.problem_spec.initial, self.ROBOT_COLOUR)  # initial
@@ -158,7 +161,10 @@ class Visualiser:
 
     def render_environment(self):
         # render background
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.bg_img)
+        if self.bg_img is not None:
+            self.canvas.create_image(0, 0, anchor=tk.NW, image=self.bg_img)
+        else:
+            self.canvas.create_rectangle(0, 0, 600, 600, fill='black')
 
         # draw obstacles
         for o in self.problem_spec.obstacles:
