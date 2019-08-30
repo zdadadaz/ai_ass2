@@ -1,7 +1,8 @@
 import sys
 import math
-from support.robot_config import make_robot_config_from_ee1
+from support.robot_config import RobotConfig, make_robot_config_from_ee1
 from support.problem_spec import ProblemSpec
+from support.obstacle import Obstacle
 
 """
 Tester script.
@@ -10,7 +11,8 @@ Use this script to test whether your output files are valid solutions. This scri
 and your solution file.
 
 You should avoid modifying this file directly. You may use code from functions in this file (e.g. collision checking)
-either directly or by copying into your own file. Note that the implementations in this file may be inefficient.
+either directly or by copying into your own file. Note that the implementations in this file are not necessarily
+the most efficient way possible.
 
 COMP3702 2019 Assignment 2 Support Code
 
@@ -89,10 +91,10 @@ def test_line_collision(line1, line2):
     return test_orientation(p1, q1, p2, q2)
 
 
-def test_angle_constraints(config):
+def test_angle_constraints(config, spec):
     # return true for pass, false for fail
     for a in config.ee1_angles:
-        if 11 * math.pi / 12 < a < 13 * math.pi / 12:
+        if (11 * math.pi / 12) - spec.TOLERANCE < a < (13 * math.pi / 12) + spec.TOLERANCE:
             # internal angle tighter than 15 degrees
             return False
     return True
@@ -101,7 +103,8 @@ def test_angle_constraints(config):
 def test_length_constraints(config, spec):
     # return true for pass, false for fail
     for i in range(spec.num_segments):
-        if config.lengths[i] < spec.min_lengths[i] or config.lengths[i] > spec.max_lengths[i]:
+        if config.lengths[i] < spec.min_lengths[i] - spec.TOLERANCE or \
+                config.lengths[i] > spec.max_lengths[i] + spec.TOLERANCE:
             return False
     return True
 
@@ -115,18 +118,24 @@ def test_grapple_point_constraint(config, spec):
     ee1x, ee1y = config.points[0]
     ee2x, ee2y = config.points[-1]
     for gpx, gpy in spec.grapple_points:
-        if point_is_close(ee1x, ee1y, gpx, gpy, spec.TOLERANCE) or point_is_close(ee2x, ee2y, gpx, gpy, spec.TOLERANCE):
+        if (point_is_close(ee1x, ee1y, gpx, gpy, spec.TOLERANCE) or
+            point_is_close(ee2x, ee2y, gpx, gpy, spec.TOLERANCE)) and \
+                not point_is_close(ee1x, ee1y, ee2x, ee2y, spec.TOLERANCE):
             return True
     return False
 
 
-def test_internal_collision(config, spec):
+def test_self_collision(config, spec):
     # return true for pass, false for fail
+    if spec.num_segments < 3:
+        # collision impossible with less than 3 segments
+        return True
+    # do full check
     for i in range(spec.num_segments - 1):
         p1 = config.points[i]
         q1 = config.points[i+1]
 
-        for j in range(i + 1, spec.num_segments):
+        for j in range(i + 2, spec.num_segments):
             p2 = config.points[j]
             q2 = config.points[j+1]
 
@@ -136,13 +145,72 @@ def test_internal_collision(config, spec):
     return True
 
 
-def test_obstacle_collision(config, spec):
-    pass
+def __get_lenient_obstacle_bounds(obstacle, spec):
+    """
+    This method should only be used by tester. To avoid unexpected errors in your solution caused by floating point
+    noise, you should not use this method in your solver.
+    """
+    # shrink obstacle by TOLERANCE in each direction
+    return Obstacle(obstacle.x1 + spec.TOLERANCE, obstacle.y1 + spec.TOLERANCE,
+                    obstacle.x2 - spec.TOLERANCE, obstacle.y2 - spec.TOLERANCE)
 
 
-def test_robot_config(config, spec):
-    # check simplest first
-    pass
+def __get_lenient_obstacles(spec):
+    """
+    This method should only be used by tester. To avoid unexpected errors in your solution caused by floating point
+    noise, you should not use this method in your solver.
+    """
+    # shrink all obstacles by TOLERANCE
+    obstacles = []
+    for o in spec.obstacles:
+        obstacles.append(__get_lenient_obstacle_bounds(o, spec))
+    return obstacles
+
+
+def test_obstacle_collision(config, spec, obstacles):
+    # return true for pass, false for fail
+    for i in range(spec.num_segments):
+        p = config.points[i]
+        q = config.points[i+1]
+        for o in obstacles:
+            # bounding box check
+            if not test_bounding_box(p, q, (o.x1, o.y1), (o.x2, o.y2)):
+                continue
+
+            # full edge check
+            for e in o.edges:
+                if test_line_collision((p, q), e):
+                    # collision between robot segment and obstacle edge
+                    return False
+    return True
+
+
+def test_config_equality(c1, c2):
+    """
+    Check for equality between robot config objects.
+    :param other: object for comparison
+    :return: True if equal (i.e. all points match), false otherwise
+    """
+    if not isinstance(c1, RobotConfig) or not isinstance(c2, RobotConfig):
+        return False
+    if len(c1.points) != len(c2.points):
+        return False
+    for i in range(len(c1.points)):
+        if c1.points[i] != c2.points[i]:
+            return False
+    return True
+
+
+def test_config_distance(c1, c2, spec):
+    # return maximum distance between 2 configurations (defined as maximum distance between corresponding points)
+    max_delta = 0
+    for i in range(spec.num_segments + 1):
+        delta = math.sqrt((c2.points[i][0] - c1.points[i][0])**2 + (c2.points[i][1] - c1.points[i][1])**2)
+        if delta > max_delta:
+            max_delta = delta
+    if max_delta > spec.PRIMITIVE_STEP + spec.TOLERANCE:
+        return False
+    return True
 
 
 def main(arglist):
@@ -151,6 +219,50 @@ def main(arglist):
 
     spec = ProblemSpec(input_file)
     robot_configs = load_output(soln_file)
+    lenient_obstacles = __get_lenient_obstacles(spec)
+    violations = 0
+
+    if robot_configs[0] != spec.initial:
+        violations += 1
+        print("!!! The first robot configuration does not match the initial position from the problem spec !!!")
+
+    for i in range(len(robot_configs)):
+        if not test_angle_constraints(robot_configs[i], spec):
+            violations += 1
+            print("!!! One or more of the angles between robot segments is tighter than allowed at step number " +
+                  str(i) + " !!!")
+
+        if not test_length_constraints(robot_configs[i], spec):
+            violations += 1
+            print("!!! One or more of the robot segments is shorter or longer than allowed at step number " +
+                  str(i) + " !!!")
+
+        if not test_grapple_point_constraint(robot_configs[i], spec):
+            violations += 1
+            print("!!! Robot is not connected to at least 1 grapple point (or a grapple point is occupied by more " +
+                  "than one end effector) at step number " + str(i) + " !!!")
+
+        if not test_self_collision(robot_configs[i], spec):
+            violations += 1
+            print("!!! Robot is in collision with itself at step number " + str(i) + " !!!")
+
+        if not test_obstacle_collision(robot_configs[i], spec, lenient_obstacles):
+            violations += 1
+            print("!!! Robot is in collision with an obstacle at step number " + str(i) + " !!!")
+
+        if i + 1 < len(robot_configs) and not test_config_distance(robot_configs[i], robot_configs[i+1], spec):
+            violations += 1
+            print("!!! Step size is greater than primitive step limit between step number " + str(i) + " and " +
+                  str(i + 1) + " !!!")
+
+    if robot_configs[-1] != spec.goal:
+        violations += 1
+        print("!!! The last robot configuration does not match the goal position from the problem spec !!!")
+
+    # TODO: complete this
+
+
+
 
 
 if __name__ == '__main__':

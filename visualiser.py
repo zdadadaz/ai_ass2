@@ -2,7 +2,8 @@ import sys
 import math
 import tkinter as tk
 from support.problem_spec import ProblemSpec
-from tester import load_output
+# from tester import load_output
+from tester import *
 
 """
 Graphical visualiser program.
@@ -252,8 +253,9 @@ class Visualiser:
         self.idx = int(value)
 
         # update canvas and slider
-        #self.unrender_objects(self.drawn_objects)
-        #self.drawn_objects += self.render_robot(self.soln[self.idx], self.ROBOT_COLOUR)   # current
+        if self.state == self.PAUSED and 0 < self.idx < len(self.soln) - 1:
+            self.unrender_objects(self.drawn_objects)
+            self.drawn_objects += self.render_robot(self.soln[self.idx], self.ROBOT_COLOUR)   # current
         self.step_slider.set(self.idx)
 
         # queue next update immediately

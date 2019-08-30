@@ -17,6 +17,9 @@ class ProblemSpec:
     # max allowable error for floating point comparisons
     TOLERANCE = 1e-5
 
+    # max primitive step size
+    PRIMITIVE_STEP = 1e-3
+
     def __init__(self, input_file):
         # parse input file
         f = open(input_file, 'r')
