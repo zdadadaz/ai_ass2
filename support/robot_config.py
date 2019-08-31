@@ -64,7 +64,7 @@ class RobotConfig:
         # add angles from ee1
         s += ' '.join([str(round(a * 180 / math.pi, 8)) for a in self.ee1_angles]) + '; '
         # add lengths
-        s += ' '.join([str(l) for l in self.lengths])
+        s += ' '.join([str(round(l, 8)) for l in self.lengths])
         return s
 
     def get_ee1(self):
