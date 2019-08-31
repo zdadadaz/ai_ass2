@@ -185,7 +185,7 @@ def test_obstacle_collision(config, spec, obstacles):
     return True
 
 
-def test_config_equality(c1, c2):
+def test_config_equality(c1, c2, spec):
     """
     Check for equality between robot config objects.
     :param other: object for comparison
@@ -193,21 +193,35 @@ def test_config_equality(c1, c2):
     """
     if not isinstance(c1, RobotConfig) or not isinstance(c2, RobotConfig):
         return False
-    if len(c1.points) != len(c2.points):
-        return False
-    for i in range(len(c1.points)):
-        if c1.points[i] != c2.points[i]:
+    for i in range(spec.num_segments + 1):
+        if not point_is_close(c1.points[i][0], c1.points[i][1], c2.points[i][0], c2.points[i][1], spec.TOLERANCE):
+            return False
+    for i in range(spec.num_segments):
+        if abs(c2.lengths[i] - c1.lengths[i]) > spec.TOLERANCE:
             return False
     return True
 
 
 def test_config_distance(c1, c2, spec):
-    # return maximum distance between 2 configurations (defined as maximum distance between corresponding points)
+    # return maximum distance between 2 configurations
     max_delta = 0
-    for i in range(spec.num_segments + 1):
-        delta = math.sqrt((c2.points[i][0] - c1.points[i][0])**2 + (c2.points[i][1] - c1.points[i][1])**2)
-        if delta > max_delta:
-            max_delta = delta
+
+    max_ee1_delta = 0
+    max_ee2_delta = 0
+    for i in range(spec.num_segments):
+        if abs(c2.ee1_angles[i] - c1.ee1_angles[i]) > max_ee1_delta:
+            max_ee1_delta = abs(c2.ee1_angles[i] - c1.ee1_angles[i])
+
+        if abs(c2.ee2_angles[i] - c1.ee2_angles[i]) > max_ee2_delta:
+            max_ee2_delta = abs(c2.ee2_angles[i] - c1.ee2_angles[i])
+
+    # measure leniently - allow compliance from EE1 or EE2
+    max_delta = min(max_ee1_delta, max_ee2_delta)
+
+    for i in range(spec.num_segments):
+        if abs(c2.lengths[i] - c1.lengths[i]) > max_delta:
+            max_delta = abs(c2.lengths[i] - c1.lengths[i])
+
     if max_delta > spec.PRIMITIVE_STEP + spec.TOLERANCE:
         return False
     return True
@@ -222,47 +236,62 @@ def main(arglist):
     lenient_obstacles = __get_lenient_obstacles(spec)
     violations = 0
 
-    if robot_configs[0] != spec.initial:
+    # run validity tests for each config
+    if not test_config_equality(robot_configs[0], spec.initial, spec):
         violations += 1
-        print("!!! The first robot configuration does not match the initial position from the problem spec !!!")
+        if violations <= 10:
+            print("!!! The first robot configuration does not match the initial position from the problem spec !!!")
 
     for i in range(len(robot_configs)):
         if not test_angle_constraints(robot_configs[i], spec):
             violations += 1
-            print("!!! One or more of the angles between robot segments is tighter than allowed at step number " +
-                  str(i) + " !!!")
+            if violations <= 10:
+                print("!!! One or more of the angles between robot segments is tighter than allowed at step number " +
+                      str(i) + " !!!")
 
         if not test_length_constraints(robot_configs[i], spec):
             violations += 1
-            print("!!! One or more of the robot segments is shorter or longer than allowed at step number " +
-                  str(i) + " !!!")
+            if violations <= 10:
+                print("!!! One or more of the robot segments is shorter or longer than allowed at step number " +
+                      str(i) + " !!!")
 
         if not test_grapple_point_constraint(robot_configs[i], spec):
             violations += 1
-            print("!!! Robot is not connected to at least 1 grapple point (or a grapple point is occupied by more " +
-                  "than one end effector) at step number " + str(i) + " !!!")
+            if violations <= 10:
+                print("!!! Robot is not connected to at least 1 grapple point (or a grapple point is occupied by " +
+                      "more than one end effector) at step number " + str(i) + " !!!")
 
         if not test_self_collision(robot_configs[i], spec):
             violations += 1
-            print("!!! Robot is in collision with itself at step number " + str(i) + " !!!")
+            if violations <= 10:
+                print("!!! Robot is in collision with itself at step number " + str(i) + " !!!")
 
         if not test_obstacle_collision(robot_configs[i], spec, lenient_obstacles):
             violations += 1
-            print("!!! Robot is in collision with an obstacle at step number " + str(i) + " !!!")
+            if violations <= 10:
+                print("!!! Robot is in collision with an obstacle at step number " + str(i) + " !!!")
 
         if i + 1 < len(robot_configs) and not test_config_distance(robot_configs[i], robot_configs[i+1], spec):
             violations += 1
-            print("!!! Step size is greater than primitive step limit between step number " + str(i) + " and " +
-                  str(i + 1) + " !!!")
+            if violations <= 10:
+                print("!!! Step size is greater than primitive step limit between step number " + str(i) + " and " +
+                      str(i + 1) + " !!!")
 
-    if robot_configs[-1] != spec.goal:
+    if not test_config_equality(robot_configs[-1], spec.goal, spec):
         violations += 1
-        print("!!! The last robot configuration does not match the goal position from the problem spec !!!")
+        if violations <= 10:
+            print("!!! The last robot configuration does not match the goal position from the problem spec !!!")
 
-    # TODO: complete this
+    # print summary
+    if violations > 10:
+        print("!!! " + str(violations - 10) + " other rule violation(s) !!!")
 
-
-
+    if violations == 0:
+        print("Testcase solved successfully!")
+        return 0
+    else:
+        print("Invalid solution file - " + str(violations) + " violations encountered.")
+        return 1
 
 
 if __name__ == '__main__':
