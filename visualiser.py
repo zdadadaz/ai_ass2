@@ -2,8 +2,7 @@ import sys
 import math
 import tkinter as tk
 from support.problem_spec import ProblemSpec
-# from tester import load_output
-from tester import *
+from tester import load_output
 
 """
 Graphical visualiser program.
@@ -18,7 +17,7 @@ Taking screenshots of this program may be useful for your report.
 
 COMP3702 2019 Assignment 2 Support Code
 
-Last updated by njc 24/08/19
+Last updated by njc 01/09/19
 """
 
 

@@ -9,7 +9,7 @@ class RobotConfig:
 
     COMP3702 2019 Assignment 2 Support Code
 
-    Last updated by njc 24/08/19
+    Last updated by njc 01/09/19
     """
 
     def __init__(self, lengths, ee1x=None, ee1y=None, ee1_angles=None, ee2x=None, ee2y=None, ee2_angles=None):
