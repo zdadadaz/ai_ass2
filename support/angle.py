@@ -4,8 +4,8 @@ import math
 class Angle:
     """
     Class representing an angle. Behaves like a normal floating point number, supporting addition, subtraction,
-    negation, equality and comparison (not multiplication). Constructor accepts degrees or radians, and value can be
-    accessed as degrees or radians. Automatically keeps value in the range of -pi and pi.
+    multiplication by scalar, division by scalar, negation, equality and comparison. Constructor accepts degrees or
+    radians, and value can be accessed as degrees or radians. Automatically keeps value in the range of -pi and pi.
 
     COMP3702 2019 Assignment 2 Support Code
 
@@ -62,13 +62,85 @@ class Angle:
                 radians += 2 * math.pi
         return Angle(radians=radians)
 
+    def __mul__(self, other):
+        if isinstance(other, (int, float)):
+            radians = self.radians * other
+        else:
+            raise Exception("* operation between Angle and " + str(type) + " not supported.")
+        # get in range (-pi, pi)
+        if radians > 0:
+            while radians > math.pi:
+                radians -= 2 * math.pi
+        else:
+            while radians < -math.pi:
+                radians += 2 * math.pi
+        return Angle(radians=radians)
+
+    def __truediv__(self, other):
+        if isinstance(other, (int, float)):
+            radians = self.radians / other
+        else:
+            raise Exception("/ operation between Angle and " + str(type) + " not supported.")
+        # get in range (-pi, pi)
+        if radians > 0:
+            while radians > math.pi:
+                radians -= 2 * math.pi
+        else:
+            while radians < -math.pi:
+                radians += 2 * math.pi
+        return Angle(radians=radians)
+
+    def __floordiv__(self, other):
+        if isinstance(other, (int, float)):
+            radians = self.radians // other
+        else:
+            raise Exception("// operation between Angle and " + str(type) + " not supported.")
+        # get in range (-pi, pi)
+        if radians > 0:
+            while radians > math.pi:
+                radians -= 2 * math.pi
+        else:
+            while radians < -math.pi:
+                radians += 2 * math.pi
+        return Angle(radians=radians)
+
     def __radd__(self, other):
         if isinstance(other, Angle):
-            radians = self.radians + other.radians
+            radians = other.radians + self.radians
         elif isinstance(other, (int, float)):
-            radians = self.radians + other
+            radians = other + self.radians
         else:
-            raise Exception("Reverse Add operation between Angle and " + str(type) + " not supported.")
+            raise Exception("+ operation between " + str(type) + " and Angle not supported.")
+        # get in range (-pi, pi)
+        if radians > 0:
+            while radians > math.pi:
+                radians -= 2 * math.pi
+        else:
+            while radians < -math.pi:
+                radians += 2 * math.pi
+        return Angle(radians=radians)
+
+    def __rsub__(self, other):
+        if isinstance(other, Angle):
+            radians = other.radians - self.radians
+        elif isinstance(other, (int, float)):
+            radians = other - self.radians
+        else:
+            raise Exception("- operation between " + str(type) + " and Angle not supported.")
+        # get in range (-pi, pi)
+        if radians > 0:
+            while radians > math.pi:
+                radians -= 2 * math.pi
+        else:
+            while radians < -math.pi:
+                radians += 2 * math.pi
+        return Angle(radians=radians)
+
+    def __rmul__(self, other):
+        if isinstance(other, (int, float)):
+            radians = other * self.radians
+        else:
+            raise Exception("* operation between Angle and " + str(type) + " not supported.")
         # get in range (-pi, pi)
         if radians > 0:
             while radians > math.pi:
