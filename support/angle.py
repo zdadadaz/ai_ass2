@@ -258,3 +258,11 @@ class Angle:
         else:
             raise Exception("atan function for " + str(type) + " not supported.")
 
+    @staticmethod
+    def atan2(y, x):
+        if isinstance(x, (int, float)) and isinstance(y, (int, float)):
+            return Angle(radians=math.atan2(y, x))
+        else:
+            raise Exception("atan2 function for " + str(type) + " not supported.")
+
+
