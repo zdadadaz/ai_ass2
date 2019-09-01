@@ -91,6 +91,16 @@ def test_line_collision(line1, line2):
     return test_orientation(p1, q1, p2, q2)
 
 
+def test_environment_bounds(config):
+    # return true for pass, false for fail
+    for x, y in config.points:
+        if not 0.0 <= x <= 1.0:
+            return False
+        if not 0.0 <= y <= 1.0:
+            return False
+    return True
+
+
 def test_angle_constraints(config, spec):
     # return true for pass, false for fail
     for a in config.ee1_angles:
@@ -243,6 +253,12 @@ def main(arglist):
             print("!!! The first robot configuration does not match the initial position from the problem spec !!!")
 
     for i in range(len(robot_configs)):
+        if not test_environment_bounds(robot_configs[i]):
+            violations += 1
+            if violations <= 10:
+                print("!!! Robot goes outside the bounds of the environment at step number " +
+                      str(i) + " !!!")
+
         if not test_angle_constraints(robot_configs[i], spec):
             violations += 1
             if violations <= 10:
