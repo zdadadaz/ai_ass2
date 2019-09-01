@@ -1,5 +1,4 @@
 import sys
-import math
 from support.robot_config import make_robot_config_from_ee1
 from support.obstacle import Obstacle
 from support.angle import Angle
