@@ -7,6 +7,9 @@ class Angle:
     multiplication by scalar, division by scalar, negation, equality and comparison. Constructor accepts degrees or
     radians, and value can be accessed as degrees or radians. Automatically keeps value in the range of -pi and pi.
 
+    Provides static methods for sin, cos, tan, asin, acos, atan - call these from the class itself rather than an
+    instance, e.g. Angle.sin(x) not x.sin()
+
     COMP3702 2019 Assignment 2 Support Code
 
     Last updated by njc 01/09/19
@@ -206,4 +209,52 @@ class Angle:
 
     def __hash__(self):
         return hash(self.radians)
+
+    @staticmethod
+    def sin(a):
+        if isinstance(a, Angle):
+            return math.sin(a.in_radians())
+        elif isinstance(a, (int, float)):
+            return math.sin(a)
+        else:
+            raise Exception("sin function for " + str(type) + " not supported.")
+
+    @staticmethod
+    def cos(a):
+        if isinstance(a, Angle):
+            return math.cos(a.in_radians())
+        elif isinstance(a, (int, float)):
+            return math.cos(a)
+        else:
+            raise Exception("cos function for " + str(type) + " not supported.")
+
+    @staticmethod
+    def tan(a):
+        if isinstance(a, Angle):
+            return math.tan(a.in_radians())
+        elif isinstance(a, (int, float)):
+            return math.tan(a)
+        else:
+            raise Exception("tan function for " + str(type) + " not supported.")
+
+    @staticmethod
+    def asin(x):
+        if isinstance(x, (int, float)):
+            return Angle(radians=math.asin(x))
+        else:
+            raise Exception("asin function for " + str(type) + " not supported.")
+
+    @staticmethod
+    def acos(x):
+        if isinstance(x, (int, float)):
+            return Angle(radians=math.acos(x))
+        else:
+            raise Exception("acos function for " + str(type) + " not supported.")
+
+    @staticmethod
+    def atan(x):
+        if isinstance(x, (int, float)):
+            return Angle(radians=math.atan(x))
+        else:
+            raise Exception("atan function for " + str(type) + " not supported.")
 
