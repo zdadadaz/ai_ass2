@@ -40,8 +40,8 @@ class RobotConfig:
             for i in range(len(ee2_angles)):
                 x, y = points[0]
                 net_angle = net_angle + ee2_angles[i]
-                x_new = x + (lengths[-i - 1] * math.cos(net_angle))
-                y_new = y + (lengths[-i - 1] * math.sin(net_angle))
+                x_new = x + (lengths[-i - 1] * math.cos(net_angle.in_radians()))
+                y_new = y + (lengths[-i - 1] * math.sin(net_angle.in_radians()))
                 points.insert(0, (x_new, y_new))
 
             # 1st angle is last angle of e2_angles + pi, others are all -1 * e2_angles (in reverse order)
