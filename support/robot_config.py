@@ -1,4 +1,5 @@
 import math
+from support.angle import Angle
 
 
 class RobotConfig:
@@ -19,34 +20,34 @@ class RobotConfig:
         self.lengths = lengths
         if ee1x is not None and ee1y is not None and ee1_angles is not None:
             points = [(ee1x, ee1y)]
-            net_angle = 0
+            net_angle = Angle(radians=0)
             for i in range(len(ee1_angles)):
                 x, y = points[-1]
-                net_angle = (net_angle + ee1_angles[i]) % (2 * math.pi)
-                x_new = x + (lengths[i] * math.cos(net_angle))
-                y_new = y + (lengths[i] * math.sin(net_angle))
+                net_angle = net_angle + ee1_angles[i]
+                x_new = x + (lengths[i] * math.cos(net_angle.in_radians()))
+                y_new = y + (lengths[i] * math.sin(net_angle.in_radians()))
                 points.append((x_new, y_new))
 
-            self.ee1_angles = [a % (2 * math.pi) for a in ee1_angles]
+            self.ee1_angles = ee1_angles
             # 1st angle is last angle of e1_angles + pi, others are all -1 * e1_angles (in reverse order)
-            self.ee2_angles = [(math.pi + net_angle) % (2 * math.pi)] + \
-                              [-ee1_angles[i] % (2 * math.pi) for i in range(len(ee1_angles) - 1, 0, -1)]
+            self.ee2_angles = [math.pi + net_angle] + \
+                              [-ee1_angles[i] for i in range(len(ee1_angles) - 1, 0, -1)]
             self.points = points
 
         elif ee2x is not None and ee2y is not None and ee2_angles is not None:
             points = [(ee2x, ee2y)]
-            net_angle = 0
+            net_angle = Angle(radians=0)
             for i in range(len(ee2_angles)):
                 x, y = points[0]
-                net_angle = (net_angle + ee2_angles[i]) % (2 * math.pi)
+                net_angle = net_angle + ee2_angles[i]
                 x_new = x + (lengths[-i - 1] * math.cos(net_angle))
                 y_new = y + (lengths[-i - 1] * math.sin(net_angle))
                 points.insert(0, (x_new, y_new))
 
             # 1st angle is last angle of e2_angles + pi, others are all -1 * e2_angles (in reverse order)
-            self.ee1_angles = [(math.pi + sum(ee2_angles)) % (2 * math.pi)] + \
-                              [-ee2_angles[i] % (2 * math.pi) for i in range(len(ee2_angles) - 1, 0, -1)]
-            self.ee2_angles = [a % (2 * math.pi) for a in ee2_angles]
+            self.ee1_angles = [math.pi + sum(ee2_angles)] + \
+                              [-ee2_angles[i] for i in range(len(ee2_angles) - 1, 0, -1)]
+            self.ee2_angles = ee2_angles
             self.points = points
 
         else:
@@ -62,7 +63,7 @@ class RobotConfig:
         # add ee1 position
         s = str(round(self.points[0][0], 8)) + ' ' + str(round(self.points[0][1], 8)) + '; '
         # add angles from ee1
-        s += ' '.join([str(round(a * 180 / math.pi, 8)) for a in self.ee1_angles]) + '; '
+        s += ' '.join([str(round(a.in_degrees(), 8)) for a in self.ee1_angles]) + '; '
         # add lengths
         s += ' '.join([str(round(l, 8)) for l in self.lengths])
         return s

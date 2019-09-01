@@ -156,7 +156,6 @@ class Visualiser:
                 self.state = self.PAUSED
                 self.play_btn.config(text="Play")
 
-
         # queue next update after interval
         self.last_update_job = self.window.after(self.update_interval, self.update)
 
@@ -203,16 +202,20 @@ class Visualiser:
         # draw label on ee1
         ee1x, ee1y = robot_config.points[0]
         drawn_objects.append(self.canvas.create_text(
-            (ee1x + (math.cos(robot_config.ee1_angles[0] + math.pi) * self.EE_LABEL_OFFSET)) * self.CANV_SIZE,
-            (1 - (ee1y + (math.sin(robot_config.ee1_angles[0] + math.pi) * self.EE_LABEL_OFFSET))) * self.CANV_SIZE,
+            (ee1x + (math.cos(robot_config.ee1_angles[0].in_radians() + math.pi) * self.EE_LABEL_OFFSET))
+            * self.CANV_SIZE,
+            (1 - (ee1y + (math.sin(robot_config.ee1_angles[0].in_radians() + math.pi) * self.EE_LABEL_OFFSET)))
+            * self.CANV_SIZE,
             text='EE1',
             fill=colour))
 
         # draw label on ee2
         ee2x, ee2y = robot_config.points[-1]
         drawn_objects.append(self.canvas.create_text(
-            (ee2x + (math.cos(robot_config.ee2_angles[0] + math.pi) * self.EE_LABEL_OFFSET)) * self.CANV_SIZE,
-            (1 - (ee2y + (math.sin(robot_config.ee2_angles[0] + math.pi) * self.EE_LABEL_OFFSET))) * self.CANV_SIZE,
+            (ee2x + (math.cos(robot_config.ee2_angles[0].in_radians() + math.pi) * self.EE_LABEL_OFFSET))
+            * self.CANV_SIZE,
+            (1 - (ee2y + (math.sin(robot_config.ee2_angles[0].in_radians() + math.pi) * self.EE_LABEL_OFFSET)))
+            * self.CANV_SIZE,
             text='EE2',
             fill=colour))
 

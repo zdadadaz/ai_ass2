@@ -2,6 +2,7 @@ import sys
 import math
 from support.robot_config import make_robot_config_from_ee1
 from support.obstacle import Obstacle
+from support.angle import Angle
 
 
 class ProblemSpec:
@@ -43,7 +44,7 @@ class ProblemSpec:
         except Exception:
             print("Invalid value(s) for initial end effector 1 position")
             sys.exit(1)
-        initial_ee1_angles = [float(i) * math.pi / 180 for i in next_valid_line(f).split(' ')]
+        initial_ee1_angles = [Angle(degrees=float(i)) for i in next_valid_line(f).split(' ')]
         assert len(initial_ee1_angles) == self.num_segments, \
             "Number of initial ee1 angles does not match number of segments"
         initial_lengths = [float(i) for i in next_valid_line(f).split(' ')]
@@ -57,7 +58,7 @@ class ProblemSpec:
         except Exception:
             print("Invalid value(s) for goal end effector 1 position")
             sys.exit(1)
-        goal_ee1_angles = [float(i) * math.pi / 180 for i in next_valid_line(f).split(' ')]
+        goal_ee1_angles = [Angle(degrees=float(i)) for i in next_valid_line(f).split(' ')]
         assert len(goal_ee1_angles) == self.num_segments, \
             "Number of goal ee1 angles does not match number of segments"
         goal_lengths = [float(i) for i in next_valid_line(f).split(' ')]

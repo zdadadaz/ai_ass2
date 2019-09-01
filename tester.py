@@ -3,6 +3,7 @@ import math
 from support.robot_config import RobotConfig, make_robot_config_from_ee1
 from support.problem_spec import ProblemSpec
 from support.obstacle import Obstacle
+from support.angle import Angle
 
 """
 Tester script.
@@ -27,7 +28,7 @@ def load_output(filename):
     for line in f:
         ee1_xy_str, ee1_angles_str, lengths_str = line.strip().split(';')
         ee1x, ee1y = tuple([float(i) for i in ee1_xy_str.split(' ')])
-        ee1_angles = [float(i) * math.pi / 180 for i in ee1_angles_str.strip().split(' ')]
+        ee1_angles = [Angle(degrees=float(i)) for i in ee1_angles_str.strip().split(' ')]
         lengths = [float(i) for i in lengths_str.strip().split(' ')]
         robot_configs.append(make_robot_config_from_ee1(ee1x, ee1y, ee1_angles, lengths))
     return robot_configs
@@ -104,7 +105,7 @@ def test_environment_bounds(config):
 def test_angle_constraints(config, spec):
     # return true for pass, false for fail
     for a in config.ee1_angles:
-        if (11 * math.pi / 12) - spec.TOLERANCE < a < (13 * math.pi / 12) + spec.TOLERANCE:
+        if (-11 * math.pi / 12) - spec.TOLERANCE < a < (11 * math.pi / 12) + spec.TOLERANCE:
             # internal angle tighter than 15 degrees
             return False
     return True
@@ -219,11 +220,11 @@ def test_config_distance(c1, c2, spec):
     max_ee1_delta = 0
     max_ee2_delta = 0
     for i in range(spec.num_segments):
-        if abs(c2.ee1_angles[i] - c1.ee1_angles[i]) > max_ee1_delta:
-            max_ee1_delta = abs(c2.ee1_angles[i] - c1.ee1_angles[i])
+        if abs((c2.ee1_angles[i] - c1.ee1_angles[i]).in_radians()) > max_ee1_delta:
+            max_ee1_delta = abs((c2.ee1_angles[i] - c1.ee1_angles[i]).in_radians())
 
-        if abs(c2.ee2_angles[i] - c1.ee2_angles[i]) > max_ee2_delta:
-            max_ee2_delta = abs(c2.ee2_angles[i] - c1.ee2_angles[i])
+        if abs((c2.ee2_angles[i] - c1.ee2_angles[i]).in_radians()) > max_ee2_delta:
+            max_ee2_delta = abs((c2.ee2_angles[i] - c1.ee2_angles[i]).in_radians())
 
     # measure leniently - allow compliance from EE1 or EE2
     max_delta = min(max_ee1_delta, max_ee2_delta)
