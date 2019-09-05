@@ -1,5 +1,5 @@
 import sys
-from support.robot_config import make_robot_config_from_ee1
+from support.robot_config import make_robot_config_from_ee1, make_robot_config_from_ee2
 from support.obstacle import Obstacle
 from support.angle import Angle
 
@@ -38,32 +38,42 @@ class ProblemSpec:
             "Number of maximum lengths does not match number of segments"
 
         # parse initial configuration
+        initial_grappled = int(next_valid_line(f))
+        assert initial_grappled == 1 or initial_grappled == 2, "Initial end effector number is not 1 or 2"
         try:
-            initial_ee1x, initial_ee1y = [float(i) for i in next_valid_line(f).split(' ')]
+            initial_eex, initial_eey = [float(i) for i in next_valid_line(f).split(' ')]
         except Exception:
-            print("Invalid value(s) for initial end effector 1 position")
+            print("Invalid value(s) for initial end effector position")
             sys.exit(1)
-        initial_ee1_angles = [Angle(degrees=float(i)) for i in next_valid_line(f).split(' ')]
-        assert len(initial_ee1_angles) == self.num_segments, \
-            "Number of initial ee1 angles does not match number of segments"
+        initial_angles = [Angle(degrees=float(i)) for i in next_valid_line(f).split(' ')]
+        assert len(initial_angles) == self.num_segments, \
+            "Number of initial angles does not match number of segments"
         initial_lengths = [float(i) for i in next_valid_line(f).split(' ')]
         assert len(initial_lengths) == self.num_segments, \
             "Number of initial lengths does not match number of segments"
-        self.initial = make_robot_config_from_ee1(initial_ee1x, initial_ee1y, initial_ee1_angles, initial_lengths)
+        if initial_grappled == 1:
+            self.initial = make_robot_config_from_ee1(initial_eex, initial_eey, initial_angles, initial_lengths)
+        else:
+            self.initial = make_robot_config_from_ee2(initial_eex, initial_eey, initial_angles, initial_lengths)
 
         # parse goal configuration
+        goal_grappled = int(next_valid_line(f))
+        assert goal_grappled == 1 or goal_grappled == 2,  "Goal end effector number is not 1 or 2"
         try:
-            goal_ee1x, goal_ee1y = [float(i) for i in next_valid_line(f).split(' ')]
+            goal_eex, goal_eey = [float(i) for i in next_valid_line(f).split(' ')]
         except Exception:
             print("Invalid value(s) for goal end effector 1 position")
             sys.exit(1)
-        goal_ee1_angles = [Angle(degrees=float(i)) for i in next_valid_line(f).split(' ')]
-        assert len(goal_ee1_angles) == self.num_segments, \
+        goal_angles = [Angle(degrees=float(i)) for i in next_valid_line(f).split(' ')]
+        assert len(goal_angles) == self.num_segments, \
             "Number of goal ee1 angles does not match number of segments"
         goal_lengths = [float(i) for i in next_valid_line(f).split(' ')]
         assert len(goal_lengths) == self.num_segments, \
             "Number of goal lengths does not match number of segments"
-        self.goal = make_robot_config_from_ee1(goal_ee1x, goal_ee1y, goal_ee1_angles, goal_lengths)
+        if goal_grappled == 1:
+            self.goal = make_robot_config_from_ee1(goal_eex, goal_eey, goal_angles, goal_lengths)
+        else:
+            self.goal = make_robot_config_from_ee2(goal_eex, goal_eey, goal_angles, goal_lengths)
 
         # parse grapple points
         try:
