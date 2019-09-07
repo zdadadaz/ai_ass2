@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 
 class Angle:
@@ -18,14 +19,7 @@ class Angle:
     def __init__(self, radians=None, degrees=None):
         if radians is None:
             radians = degrees * math.pi / 180
-        # get in range (-pi, pi)
-        if radians > 0:
-            while radians > math.pi:
-                radians -= 2 * math.pi
-        else:
-            while radians < -math.pi:
-                radians += 2 * math.pi
-        self.radians = radians
+        self.radians = (radians + np.pi) % (2 * np.pi) - np.pi  # get in range (-pi, pi)
 
     def in_radians(self):
         return self.radians
