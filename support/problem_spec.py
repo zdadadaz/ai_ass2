@@ -57,7 +57,6 @@ class ProblemSpec:
         else:
             self.initial = make_robot_config_from_ee2(initial_eex, initial_eey, initial_angles, initial_lengths,
                                                       ee2_grappled=True)
-
         # parse goal configuration
         goal_grappled = int(next_valid_line(f))
         assert goal_grappled == 1 or goal_grappled == 2,  "Goal end effector number is not 1 or 2"

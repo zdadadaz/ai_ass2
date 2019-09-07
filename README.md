@@ -22,6 +22,16 @@ This file contains the `Obstacle` class, a simple class representing a rectangul
 
 Refer to the documentation at the start of this file for more details.
 
+**support/angle.py**
+
+This file contains the `Angle` class, representing an angle. This class behaves like a normal floating point number, supporting addition, subtraction, multiplication by scalar, division by scalar, negation, equality and comparison. Constructor accepts degrees or radians, and value can be accessed as degrees or radians. Automatically keeps value in the range of -pi and pi.
+
+We suggest using this class when working with angles to avoid having to manually keep the angle within the correct range.
+
+This class also contains static methods for performing trigonometric operations on `Angle` objects.
+
+Refer to the documentation at the start of this file for more details.
+
 **tester.py**
 
 This file is a script which takes an input file and a solution file as input, and determines whether the solution file is valid. This script will be used to verify your solutions during your demonstration. Your should ensure that your solution files match the standard required by the `tester.py` script. For valid solution files, the script will output "Testcase solved successfully!".
