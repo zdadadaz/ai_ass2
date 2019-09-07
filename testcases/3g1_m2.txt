@@ -5,16 +5,20 @@
 # max lengths for each segment (order from ee1)
 0.2 0.2 0.2
 
-# initial ee1x, ee1y
+# initial grappled ee
+1
+# initial grappled eex, eey
 0.5 0.3
-# initial angles from ee1 +ve axis (degrees)
+# initial angles from grappled ee +ve axis (degrees)
 30.0 30.0 30.0
 # initial lengths from ee1
 0.2 0.2 0.2
 
-# goal ee1x, ee1y
+# goal grappled ee
+1
+# goal grappled eex, eey
 0.5 0.3
-# goal angles from ee1 +ve axis (degrees)
+# goal angles from grappled ee +ve axis (degrees)
 150.0 -30.0 -30.0
 # goal lengths from ee1
 0.2 0.2 0.2

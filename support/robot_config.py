@@ -9,15 +9,18 @@ class RobotConfig:
 
     COMP3702 2019 Assignment 2 Support Code
 
-    Last updated by njc 01/09/19
+    Last updated by njc 24/08/19
     """
 
-    def __init__(self, lengths, ee1x=None, ee1y=None, ee1_angles=None, ee2x=None, ee2y=None, ee2_angles=None):
+    def __init__(self, lengths, ee1x=None, ee1y=None, ee1_angles=None, ee2x=None, ee2y=None, ee2_angles=None,
+                 ee1_grappled=False, ee2_grappled=False):
         """
         Constructor for RobotConfig - we suggest using make_robot_config_from_ee1() or make_robot_config_from_ee2()
         to construct new instances of RobotConfig rather than calling this function directly.
         """
         self.lengths = lengths
+        self.ee1_grappled = ee1_grappled
+        self.ee2_grappled = ee2_grappled
         if ee1x is not None and ee1y is not None and ee1_angles is not None:
             points = [(ee1x, ee1y)]
             net_angle = Angle(radians=0)
@@ -83,28 +86,32 @@ class RobotConfig:
         return self.points[-1]
 
 
-def make_robot_config_from_ee1(x, y, angles, lengths):
+def make_robot_config_from_ee1(x, y, angles, lengths, ee1_grappled=False, ee2_grappled=False):
     """
     Create a robot configuration from the position of end effector 1, with angles relative to end effector 1.
     :param x: horizontal position of end 1
     :param y: vertical position of end 1
     :param angles: list angles of each joint starting from end 1 (in radians)
     :param lengths: list of lengths of each segment
+    :param ee1_grappled: whether the robot is grappled at end 1
+    :param ee2_grappled: whether the robot is grappled at end 2
     :return: RobotConfig instance
     """
-    return RobotConfig(lengths, ee1x=x, ee1y=y, ee1_angles=angles)
+    return RobotConfig(lengths, ee1x=x, ee1y=y, ee1_angles=angles, ee1_grappled=ee1_grappled, ee2_grappled=ee2_grappled)
 
 
-def make_robot_config_from_ee2(x, y, angles, lengths):
+def make_robot_config_from_ee2(x, y, angles, lengths, ee1_grappled=False, ee2_grappled=False):
     """
     Create a robot configuration from the position of end effector 2, with angles relative to end effector 2.
     :param x: horizontal position of end 2
     :param y: vertical position of end 2
     :param angles: list angles of each joint starting from end 2 (in radians)
     :param lengths: list of lengths of each segment
+    :param ee1_grappled: whether the robot is grappled at end 1
+    :param ee2_grappled: whether the robot is grappled at end 2
     :return: RobotConfig instance
     """
-    return RobotConfig(lengths, ee2x=x, ee2y=y, ee2_angles=angles)
+    return RobotConfig(lengths, ee2x=x, ee2y=y, ee2_angles=angles, ee1_grappled=ee1_grappled, ee2_grappled=ee2_grappled)
 
 
 def write_robot_config_list_to_file(filename, robot_config_list):

@@ -104,8 +104,9 @@ def test_environment_bounds(config):
 
 def test_angle_constraints(config, spec):
     # return true for pass, false for fail
-    for a in config.ee1_angles:
-        if not (-11 * math.pi / 12) - spec.TOLERANCE < a < (11 * math.pi / 12) + spec.TOLERANCE:
+    for i in range(1, spec.num_segments):
+        a = config.ee1_angles[i]
+        if not ((-11 * math.pi / 12) - spec.TOLERANCE < a < (11 * math.pi / 12) + spec.TOLERANCE):
             # internal angle tighter than 15 degrees
             return False
     return True
