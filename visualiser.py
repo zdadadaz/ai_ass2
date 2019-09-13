@@ -282,6 +282,7 @@ def main(arglist):
         soln = load_output(arglist[1])
     else:
         soln = []
+    print(spec)
     vis = Visualiser(spec, soln)
 
 

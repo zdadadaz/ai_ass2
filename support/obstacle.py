@@ -21,3 +21,8 @@ class Obstacle:
         self.corners = [(x1, y1), (x1, y2), (x2, y2), (x2, y1)]
         self.edges = [(self.corners[i], self.corners[(i + 1) % 4]) for i in range(4)]
 
+    def check_in_obstacle(self, x,y):
+        if x >= self.x1 and x <= self.x2 and y >= self.y1 and y <= self.y2:
+            return True
+        else:
+            return False

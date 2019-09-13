@@ -107,6 +107,20 @@ class ProblemSpec:
                 sys.exit(1)
         self.obstacles = obstacles
 
+    def get_grapple_points(self):
+        return self.grapple_points
+
+    def get_num_segment(self):
+        return self.num_segments
+
+    def get_min_max_len(self):
+        return (self.min_lengths,self.max_lengths)
+
+    def check_in_obstacles(self,xy):
+        for i in self.obstacles:
+            if (i.check_in_obstacle(xy[0],xy[1])):
+                return True
+        return False
 
 def next_valid_line(f):
     # skip comments and empty lines, return None on EOF

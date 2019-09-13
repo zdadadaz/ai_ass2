@@ -10,7 +10,7 @@
 # initial grappled eex, eey
 0.5 0.3
 # initial angles from grappled ee +ve axis (degrees)
-30.0 30.0 30.0
+30.0 30.0 10.0
 # initial lengths from ee1
 0.2 0.2 0.2
 
