@@ -54,9 +54,12 @@ class ProblemSpec:
         if initial_grappled == 1:
             self.initial = make_robot_config_from_ee1(initial_eex, initial_eey, initial_angles, initial_lengths,
                                                       ee1_grappled=True)
+            self.init_grappled = 1
         else:
             self.initial = make_robot_config_from_ee2(initial_eex, initial_eey, initial_angles, initial_lengths,
                                                       ee2_grappled=True)
+            self.init_grappled = 2
+
         # parse goal configuration
         goal_grappled = int(next_valid_line(f))
         assert goal_grappled == 1 or goal_grappled == 2,  "Goal end effector number is not 1 or 2"
@@ -73,8 +76,10 @@ class ProblemSpec:
             "Number of goal lengths does not match number of segments"
         if goal_grappled == 1:
             self.goal = make_robot_config_from_ee1(goal_eex, goal_eey, goal_angles, goal_lengths, ee1_grappled=True)
+            self.goal_grappled = 1
         else:
             self.goal = make_robot_config_from_ee2(goal_eex, goal_eey, goal_angles, goal_lengths, ee2_grappled=True)
+            self.goal_grappled = 2
 
         # parse grapple points
         try:
@@ -121,6 +126,12 @@ class ProblemSpec:
             if (i.check_in_obstacle(xy[0],xy[1])):
                 return True
         return False
+    def get_init_state(self):
+        return self.initial
+    def get_goal_state(self):
+        return self.goal
+            
+
 
 def next_valid_line(f):
     # skip comments and empty lines, return None on EOF

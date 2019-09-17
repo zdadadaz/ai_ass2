@@ -1,6 +1,6 @@
 import math
 from support.angle import Angle
-
+from util import Box 
 
 class RobotConfig:
     """
@@ -68,9 +68,13 @@ class RobotConfig:
         # add angles from ee1
         s += ' '.join([str(round(a.in_degrees(), 8)) for a in self.ee1_angles]) + '; '
         # add lengths
-        s += ' '.join([str(round(l, 8)) for l in self.lengths])
+        s += ' '.join([str(round(l, 8)) for l in self.lengths]) + '; '
+        if self.ee1_grappled:
+            s += str(1)
+        else:
+            s += str(2)
         return s
-
+    
     def get_ee1(self):
         """
         Return the position of end effector 1.
@@ -85,6 +89,40 @@ class RobotConfig:
         """
         return self.points[-1]
 
+    def check_outOfbound(self):
+        for i in self.points:
+            if (i[0]< 0 or i[1] > 1):
+                return True
+        return False
+
+    def check_collision(self):
+        boxs = []
+        for i in range(len(self.points)-1):
+            boxs.append(Box(self.points[i],self.points[i+1]))
+        barrier = self.check_barrier_collision(boxs)
+    
+    def check_barrier_collision(self,boxs):
+        for i in range(len(boxs)):
+            for j in range(i+1,len(boxs)):
+                boundBox = self.ounding_box_collision(boxs[i],boxs[j])        
+
+    def bounding_box_collision(self,a,b):
+        return (abs(a.x - b.x) * 2 < (a.width + b.width)) and (abs(a.y - b.y) * 2 < (a.height + b.height))
+
+    def get_angle(self):
+        if self.ee1_grappled:
+            return self.ee1_angles
+        else:
+            return self.ee2_angles
+
+    def get_length(self):
+        return self.lengths
+
+    def get_grapple_ee1(self):
+        if (self.ee1_grappled):
+            return 1
+        else:
+            return 2
 
 def make_robot_config_from_ee1(x, y, angles, lengths, ee1_grappled=False, ee2_grappled=False):
     """
@@ -125,4 +163,5 @@ def write_robot_config_list_to_file(filename, robot_config_list):
     for rc in robot_config_list:
         f.write(str(rc) + '\n')
     f.close()
+
 
