@@ -1,6 +1,5 @@
 import math
 from support.angle import Angle
-from util import Box 
 
 class RobotConfig:
     """
@@ -88,26 +87,6 @@ class RobotConfig:
         :return: (ee2x, ee2y)
         """
         return self.points[-1]
-
-    def check_outOfbound(self):
-        for i in self.points:
-            if (i[0]< 0 or i[1] > 1):
-                return True
-        return False
-
-    def check_collision(self):
-        boxs = []
-        for i in range(len(self.points)-1):
-            boxs.append(Box(self.points[i],self.points[i+1]))
-        barrier = self.check_barrier_collision(boxs)
-    
-    def check_barrier_collision(self,boxs):
-        for i in range(len(boxs)):
-            for j in range(i+1,len(boxs)):
-                boundBox = self.ounding_box_collision(boxs[i],boxs[j])        
-
-    def bounding_box_collision(self,a,b):
-        return (abs(a.x - b.x) * 2 < (a.width + b.width)) and (abs(a.y - b.y) * 2 < (a.height + b.height))
 
     def get_angle(self):
         if self.ee1_grappled:

@@ -238,6 +238,20 @@ def test_config_distance(c1, c2, spec):
         return False
     return True
 
+def test_config_distance_out(c1, c2, spec):
+    # return maximum distance between 2 configurations
+    max_delta = 0
+
+    max_ee1_delta = 0
+    max_ee2_delta = 0
+    total = 0
+    for i in range(spec.num_segments):
+        total += abs((c2.ee1_angles[i] - c1.ee1_angles[i]).in_radians())
+        total += abs((c2.ee2_angles[i] - c1.ee2_angles[i]).in_radians()) 
+    # measure leniently - allow compliance from EE1 or EE2
+    for i in range(spec.num_segments):
+        total += abs(c2.lengths[i] - c1.lengths[i]) 
+    return total
 
 def main(arglist):
     input_file = arglist[0]
