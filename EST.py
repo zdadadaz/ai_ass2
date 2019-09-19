@@ -2,9 +2,9 @@ from support.problem_spec import ProblemSpec
 from support.robot_config import RobotConfig
 from support.robot_config import make_robot_config_from_ee1 as rob_conf_ee1
 from support.robot_config import make_robot_config_from_ee2 as rob_conf_ee2
+from support.robot_config import make_robot_config_with_arr 
 from support.robot_config import write_robot_config_list_to_file
 from support.angle import Angle
-
 from shortestPath import astar
 
 from test_robot import test_robot
@@ -24,11 +24,22 @@ class EST(ProblemSpec):
         self.gInit = Graph()
         self.gGoal = Graph()
 
-    def generateConnectedGrapple(self):
-        numSeg = self.get_num_segment()
-        points = self.get_grapple_points()
-
-
+#   False-> no collision, True -> have collision
+    def collision_check(self,A,B, n):
+        if n ==0:
+            return False
+        # check in the same ee grapple 
+        if (A[0] != B[0] or A[1] != B[1] or A[-1] != B[-1]):
+            return True
+        tester = test_robot(self)
+        mid = (A+B)/2
+        mid[-1] = A[-1]
+        midRobot = make_robot_config_with_arr(A[0],A[1],mid[2:(2+self.num_segments)],mid[2+self.num_segments:(2+2*self.num_segments)],A[-1])
+        if not tester.self_obstacle_test(midRobot):
+            return True # have collision
+        collision_check(self,A,mid, n-1)
+        collision_check(self,mid,B, n-1)
+        
     def sampling(self, numSampling):
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()

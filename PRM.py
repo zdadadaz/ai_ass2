@@ -6,7 +6,9 @@ from test_robot import test_robot
 from shortestPath import astar
 from support.robot_config import write_robot_config_list_to_file
 from visualiser import Visualiser 
-# from util import Interpolation
+from interpolation import Interpolation
+from util import write_sampling_config
+
 
 class PRM(EST):
     def __init__(self, input_file):
@@ -14,6 +16,11 @@ class PRM(EST):
         self.gPrm = Graph()
 
     def run_PRM(self):
+
+        # A = np.asarray([0.5,0.3, 180,110,80,0.2,0.2,0.2,1])
+        # B = np.asarray([0.5,0.3, 150,10,70,0.2,0.2,0.2,1])
+        # aa = self.collision_check(A,B,2)
+        # print(aa)
         numberSamples = 100000
         knearest = 20
         tau = 0.4
@@ -34,19 +41,8 @@ class PRM(EST):
         # out = ip.run_Interpolate()
         write_robot_config_list_to_file('output.txt',arr) 
         print(arr)
+
     
-    # def run_interpolation(self,path):
-    #     robots = []
-    #     for i in range(len(path)-1):
-    #         robot1 = self.str2robotConfig(i)
-    #         robot2 = self.str2robotConfig(i+1)
-            # interpolation2rob(robot1,robot2)
-        
-    # def interpolation2rob(self,rob1,rob2):
-
-
-
-
     def buildGraph(self,numberSamples,knearest,tau):
         tester = test_robot(self)
         samples = self.sampling(numberSamples)
@@ -75,19 +71,6 @@ class PRM(EST):
         myarray = myarray.reshape(1,c*r)
         output = np.vstack([output, myarray])
         goal = self.get_goal_state()
-        # print(init.get_angle()[0].in_degrees())
-        # print(init.get_angle()[1].in_degrees())
-        # print(init.get_angle()[2].in_degrees())
-        
-        # print(goal.get_angle()[0].in_degrees())
-        # print(goal.get_angle()[1].in_degrees())
-        # print(goal.get_angle()[2].in_degrees())
-        # print(goal.ee1_angles[0].in_degrees())
-        # print(goal.ee1_angles[1].in_degrees())
-        # print(goal.ee1_angles[2].in_degrees())
-        # print(goal.ee2_angles[0].in_degrees())
-        # print(goal.ee2_angles[1].in_degrees())
-        # print(goal.ee2_angles[2].in_degrees())
         
         self.gPrm.addVertex(str(goal))
         myarray = np.asarray(goal.points)
@@ -114,11 +97,25 @@ class PRM(EST):
 
 
 
-# file = './testcases/4g1_m1.txt'
-# prm = PRM(file)
-# # prm.run_PRM()
-# aa = test_robot(prm)
-# qq = aa.load_output('output.txt')
-# vis = Visualiser(prm, qq)
     
 
+def main():
+    file = './testcases/3g1_m1.txt'
+    prm = PRM(file)
+    prm.run_PRM()
+    aa = test_robot(prm)
+    qq = aa.load_output('output.txt')
+    vis = Visualiser(prm, qq)
+   
+#   interpolation
+    # aa = test_robot(prm)
+    # qq = aa.load_output('output.txt')
+    # aa = []
+    # for i in qq:
+    #     aa.append(str(i))
+    # gginterpolat = Interpolation(aa)
+    # gg = gginterpolat.run_Interpolate()
+    # write_sampling_config('interpolation.txt',3,gg)
+
+if __name__ == '__main__':
+    main()

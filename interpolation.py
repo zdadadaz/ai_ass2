@@ -1,7 +1,7 @@
 import numpy as np
 from test_robot import test_robot
 from support.angle import Angle
-from PRM import PRM
+# from PRM import PRM
 import math
 from util import write_sampling_config
 
@@ -78,20 +78,18 @@ class Interpolation:
         return output
 
 
-def main():
-    file = './testcases/3g1_m1.txt'
-    prm = PRM(file)    
-    aa = test_robot(prm)
-    qq = aa.load_output('output.txt')
-    aa = []
-    for i in qq:
-        aa.append(str(i))
-    # print(aa)
-    gginterpolat = Interpolation(aa)
-    gg = gginterpolat.run_Interpolate()
-    write_sampling_config('interpolation.txt',3,gg)
+# def main():
+#     file = './testcases/3g1_m1.txt'
+#     prm = PRM(file)    
+#     aa = test_robot(prm)
+#     qq = aa.load_output('output.txt')
+#     aa = []
+#     for i in qq:
+#         aa.append(str(i))
+#     # print(aa)
+#     gginterpolat = Interpolation(aa)
+#     gg = gginterpolat.run_Interpolate()
+#     write_sampling_config('interpolation.txt',3,gg)
 
-if __name__ == '__main__':
-    main()
-    # main(sys.argv[1:])
-    
+# if __name__ == '__main__':
+#     main()

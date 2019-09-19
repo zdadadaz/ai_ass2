@@ -268,5 +268,15 @@ class test_robot:
         else:
             return False
 
+# True -> pass, False -> fail
+    def self_obstacle_test(self,q):
+        spec = self.spec
+        obstacles = self.get_obstacles(spec)
+        if self.test_obstacle_collision(q, spec, obstacles):
+            return True
+        else:
+            return False
+        
+
     
 

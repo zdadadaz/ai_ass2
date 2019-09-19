@@ -74,6 +74,21 @@ class RobotConfig:
             s += str(2)
         return s
     
+    def str2list(self):
+        arr  = []
+        arr.append(self.points[0][0])
+        arr.append(self.points[0][1])
+        for i in self.ee1_angles:
+            arr.append(float(str(round(i.in_degrees(), 8))))
+        for i in self.lengths:
+            arr.append(float(str(round(i, 8))))
+        if self.ee1_grappled:
+            arr.append(1)
+        else:
+            arr.append(2)
+        return arr
+    
+
     def get_ee1(self):
         """
         Return the position of end effector 1.
@@ -143,4 +158,12 @@ def write_robot_config_list_to_file(filename, robot_config_list):
         f.write(str(rc) + '\n')
     f.close()
 
+def make_robot_config_with_arr(x, y, anglesArr, lengthsArr, grappled):
+    # grappled = 1-> ee1, 2 -> ee2
+    angles = [Angle(degrees=float(i)) for i in anglesArr]
+        
+    if grappled == 1:
+        return make_robot_config_from_ee1(x, y, angles, lengthsArr, ee1_grappled=True)
+    else:
+        return make_robot_config_from_ee2(x, y, angles, lengthsArr, ee2_grappled=True)
 
