@@ -137,7 +137,7 @@ class EST(ProblemSpec):
             return rob_conf_ee2(ee1x, ee1y, ee1_angles, lengths, ee2_grappled=True)
 
     
-    def run_EST(self):
+    def run_EST(self, outPath):
         init = self.get_init_state();
         goal = self.get_goal_state();
 
@@ -154,7 +154,7 @@ class EST(ProblemSpec):
                 robot_config_list = self.traverseBack(flagInit,added_m,q)
                 for rc in range(len(robot_config_list)):
                     robot_config_list[rc] = robot_config_list[rc][:-3]
-                write_robot_config_list_to_file('output.txt',robot_config_list)
+                write_robot_config_list_to_file(outPath,robot_config_list)
                 return True
         return False
     
