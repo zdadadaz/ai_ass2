@@ -12,7 +12,7 @@ class Interpolation:
         
     def run_Interpolate(self):
         robots = []
-        stepslength = 1e-2
+        stepslength = 1e-3
         for i in range(len(self.allv)-1):
             robot1 = self.Coefstr2arr(self.allv[i])
             robot2 = self.Coefstr2arr(self.allv[i+1])

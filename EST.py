@@ -25,20 +25,21 @@ class EST(ProblemSpec):
         self.gGoal = Graph()
 
 #   False-> no collision, True -> have collision
+#   input A,B array
     def collision_check(self,A,B, n):
         if n ==0:
             return False
         # check in the same ee grapple 
         if (A[0] != B[0] or A[1] != B[1] or A[-1] != B[-1]):
-            return True
+            return False
         tester = test_robot(self)
         mid = (A+B)/2
         mid[-1] = A[-1]
-        midRobot = make_robot_config_with_arr(A[0],A[1],mid[2:(2+self.num_segments)],mid[2+self.num_segments:(2+2*self.num_segments)],A[-1])
+        midRobot = make_robot_config_with_arr(A[0],A[1],mid[2:(2+self.num_segments)],mid[(2+self.num_segments):(2+2*self.num_segments)],A[-1])
         if not tester.self_obstacle_test(midRobot):
             return True # have collision
-        collision_check(self,A,mid, n-1)
-        collision_check(self,mid,B, n-1)
+        self.collision_check(A  ,mid, n-1)
+        self.collision_check(mid,B, n-1)
         
     def sampling(self, numSampling):
         minMax = self.get_min_max_len()
@@ -65,6 +66,10 @@ class EST(ProblemSpec):
         # print(output)
         return output
     
+    # def sampling_bridge(self,robot,ee1xy,ee2xy):
+
+
+
     def sampling_withinD(self, robot,D, numSampling):
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
@@ -188,8 +193,8 @@ class EST(ProblemSpec):
         return statelist
 
     def expandTree(self):
-        k = 1000
-        D = [0.6,1e-3]
+        k = 1
+        D = [1,1e-3]
         tau = 0.5
         pr = round(random.random())
         T = self.gGoal if pr == 1 else self.gInit
@@ -205,43 +210,43 @@ class EST(ProblemSpec):
                 # print(robot_conf[i])
                 q = self.assign_config(robot_conf,i)
                 # check q is collision or not
-                if(tester.self_collision_test(q)) and tester.test_config_distance_tau(m,q,self,tau/(i+1)):
+                if(tester.self_collision_test(q)) and tester.test_config_distance_tau(m,q,self,tau):
                     # print(str(q)[:-3])
                     f = open("tmp_output.txt", "a")
                     f.write(str(q)[:-3] + '\n')
                     f.close()
                     T.addEdge(str(m),str(q))
                     return q,pr
-    
-    def expandTree_NotRandom(self):
-        k = 1000
-        D = [0.6,1e-3]
-        tau = 0.5
-        pr = round(random.random())
-        T = self.gGoal if pr == 1 else self.gInit
-        tester = test_robot(self)
+                # else: 
+                #     output = self.obstacle_sampling(T,m,q,D,k,tester,tau)
+                #     if output is not None:
+                #         return output,pr
         
-        while True:
-            prVertex = math.floor(random.random() * T.getNumbVertices())
-            mVertex = T.getVertex(T.getVerticeByInt(prVertex))
-            m = self.str2robotConfig(mVertex.getId())
-            # m need to become robot
-            robot_conf = self.sampling_withinD(m,D,k)
-            for i in range(k):
-                # print(robot_conf[i])
-                q = self.assign_config(robot_conf,i)
-                # check q is collision or not
-                if(tester.self_collision_test(q)) and tester.test_config_distance_tau(m,q,self,tau/(i+1)):
-                    # print(str(q)[:-3])
-                    f = open("tmp_output.txt", "a")
-                    f.write(str(q)[:-3] + '\n')
-                    f.close()
-                    T.addEdge(str(m),str(q))
-                    return q,pr
+
+    def obstacle_sampling(self,T,m,q,D,k,tester,tau):
+        q_test = self.sampling_withinD(q,D,k)
+        for i in range(k):
+            q_test_conf = self.assign_config(q_test,i)
+            # find q_test in the distance of D from q
+            if(tester.self_collision_test(q_test_conf)) and tester.test_config_distance_tau(m,q_test_conf,self,tau):
+                T.addEdge(str(m),str(q_test_conf))
+                return q_test_conf
+            else: # find middle point
+                tmpA = np.asarray(q.str2list())
+                tmpB = np.asarray(q_test_conf.str2list())
+                tmpC = (tmpA+tmpB)/2
+                midRobot = make_robot_config_with_arr(tmpA[0],tmpA[1],tmpC[2:(2+self.num_segments)],tmpC[2+self.num_segments:(2+2*self.num_segments)],tmpA[-1])
+                if(tester.self_collision_test(midRobot)) and tester.test_config_distance_tau(m,midRobot,self,tau):
+                    T.addEdge(str(m),str(midRobot))
+                    return midRobot
+        return None
+
+
+
 
     def connectTree(self,added_m, flagInit):
         tester = test_robot(self)
-        tau = 0.2
+        tau = 0.4
         # check added_m in the other tree
         T = self.gInit if flagInit == 1 else self.gGoal
         visited = set()
@@ -278,14 +283,14 @@ class EST(ProblemSpec):
 def main():
 # def main(arglist):
     file = './testcases/3g1_m1.txt'
-    # outfile = 'deadlock1_out.txt'
+    outfile = 'out/3g1_m1_output.txt'
     # file = arglist[0]
     # outfile = arglist[1]
     
     prm = EST(file)
     # config = prm.sampling(1000)
     # robot = prm.get_init_state();
-    prm.run_EST()
+    prm.run_EST(outfile)
     # D = [1e-3,1e-3]
     # sampleRobot = prm.sampling_withinD(robot,D,100)
     # robot = prm.assign_config(config.tolist(),0)

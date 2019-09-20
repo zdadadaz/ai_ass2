@@ -7,6 +7,9 @@ class Vertex:
         self.parentIs = None
         self.num = number
 
+    def delete_connect_id(self,key):
+        self.connectedTo.pop(key, None)  
+        
     def addNeighbor(self,nbr,weight=0):
         self.connectedTo[nbr] = weight
     
