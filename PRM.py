@@ -15,13 +15,12 @@ class PRM(EST):
         super(PRM,self).__init__(input_file)
         self.gPrm = Graph()
 
-    def run_PRM(self):
-
+    def run_PRM(self,outPath):
         # A = np.asarray([0.5,0.3, 180,110,80,0.2,0.2,0.2,1])
         # B = np.asarray([0.5,0.3, 150,10,70,0.2,0.2,0.2,1])
         # aa = self.collision_check(A,B,2)
         # print(aa)
-        numberSamples = 100000
+        numberSamples = 10000
         knearest = 20
         tau = 0.4
         print("build graph")
@@ -39,15 +38,14 @@ class PRM(EST):
             arr.append(i[0][:-3])
         # ip = Interpolation(path)
         # out = ip.run_Interpolate()
-        write_robot_config_list_to_file('output.txt',arr) 
-        print(arr)
+        write_robot_config_list_to_file(outPath,arr) 
+        # print(arr)
 
     
     def buildGraph(self,numberSamples,knearest,tau):
         tester = test_robot(self)
         samples = self.sampling(numberSamples)
-        self.write_sampling_config('test.txt',samples.tolist())
-    
+        
         count =0
         for sp in range(numberSamples):
             rob = self.assign_config(samples,sp)
@@ -99,13 +97,13 @@ class PRM(EST):
 
     
 
-def main():
-    file = './testcases/3g1_m1.txt'
-    prm = PRM(file)
-    prm.run_PRM()
-    aa = test_robot(prm)
-    qq = aa.load_output('output.txt')
-    vis = Visualiser(prm, qq)
+# def main():
+#     file = './testcases/3g1_m1.txt'
+#     prm = PRM(file)
+#     prm.run_PRM()
+#     aa = test_robot(prm)
+#     qq = aa.load_output('output.txt')
+#     vis = Visualiser(prm, qq)
    
 #   interpolation
     # aa = test_robot(prm)
@@ -117,5 +115,5 @@ def main():
     # gg = gginterpolat.run_Interpolate()
     # write_sampling_config('interpolation.txt',3,gg)
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

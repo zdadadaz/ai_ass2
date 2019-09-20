@@ -253,10 +253,7 @@ def test_config_distance_out(c1, c2, spec):
         total += abs(c2.lengths[i] - c1.lengths[i]) 
     return total
 
-def main(arglist):
-    input_file = arglist[0]
-    soln_file = arglist[1]
-
+def tester_main(input_file,soln_file):
     spec = ProblemSpec(input_file)
     robot_configs = load_output(soln_file)
     lenient_obstacles = __get_lenient_obstacles(spec)
@@ -324,6 +321,12 @@ def main(arglist):
     else:
         print("Invalid solution file - " + str(violations) + " violations encountered.")
         return 1
+
+def main(arglist):
+    input_file = arglist[0]
+    soln_file = arglist[1]
+    tester_main(input_file,soln_file)
+    
 
 
 if __name__ == '__main__':

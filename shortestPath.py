@@ -63,8 +63,8 @@ class astar():
             curNode = curItem.item
             curVertexId = curNode.state
             visited[curVertexId] = curNode
-            print(curVertexId)
-            print(finish)
+            # print(curVertexId)
+            # print(finish)
             # print(self.difference(curVertexId, finish,spec))
             if (self.differenceTF(curVertexId, finish,spec)):
                 # traverse
