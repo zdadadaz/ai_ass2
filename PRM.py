@@ -119,46 +119,53 @@ class PRM(EST):
 
     def PRM_expansionBuildGraph(self,numberOfsampling,tau):
         # numberOfsampling = 100
+        success_limit = 10
         D = [0.4,0.3]
         # D = [0.4,1e-3]
         # tau = 0.5
         k =1
         pr = int(math.floor(random.random() * self.num_grapple_points))
         gPoints = self.get_grapple_points()
-        T = self.gDict[gPoints[pr]]
-        tester = test_robot(self)
-        successCount = 0
-        prevRobot = None
-        while T.getNumbVertices() < numberOfsampling:
-            if T.getNumbVertices() == 0:
+        for pr in range(len(gPoints)):
+            T = self.gDict[gPoints[pr]]
+            tester = test_robot(self)
+            successCount = 0
+            prevRobot = None
+            while T.getNumbVertices() < numberOfsampling:
+                # over success_limit success, change node
+                if prevRobot is not None and successCount != 0:
+                    m = prevRobot
+                else:
+                    if T.getNumbVertices() == 0:
+                        samples = self.sampling_eexy(gPoints[pr],1)
+                        m = self.assign_config(samples,0)
+                    else:
+                        prVertex = math.floor(random.random() * T.getNumbVertices())
+                        mVertex = T.getVertex(T.getVerticeByInt(prVertex))
+                        m = self.str2robotConfig(mVertex.getId())
                 
-            else:
-                prVertex = math.floor(random.random() * T.getNumbVertices())
-                mVertex = T.getVertex(T.getVerticeByInt(prVertex))
-            
-            # over 10 success, change node
-            if prevRobot is None or successCount == 0:
-                m = self.str2robotConfig(mVertex.getId())
-            else:
-                m = prevRobot
-            # m need to become robot
-            robot_conf = self.sampling_withinD(m,D,k)
-            q = self.assign_config(robot_conf,0)
-            # check q is collision or not
-            if(tester.self_collision_test(q)) and tester.test_config_distance_tau(m,q,self,tau):
-                # print(str(q)[:-3])
-                # f = open("tmp_output.txt", "a")
-                # f.write(str(q)[:-3] + '\n')
-                # f.close()
-                T.addEdge(str(m),str(q))
-                successCount += 1
-                prevRobot = q
-                return q,pr
-            else: 
-                successCount = 0
-                output = self.obstacle_sampling(T,m,q,D,k,tester,tau)
-                if output is not None:
-                    return output,pr
+                # m need to become robot
+                robot_conf = self.sampling_withinD(m,D,k)
+                q = self.assign_config(robot_conf,0)
+                # check q is collision or not
+                if(tester.self_collision_test(q)) and tester.test_config_distance_tau(m,q,self,tau):
+                    # print(str(q)[:-3])
+                    # f = open("tmp_output.txt", "a")
+                    # f.write(str(q)[:-3] + '\n')
+                    # f.close()
+                    T.addEdge(str(m),str(q))
+                    successCount += 1
+                    prevRobot = q
+                    return q,pr
+                else:  # obstacle sampling
+                    successCount = 0
+                    output = self.obstacle_sampling(T,m,q,D,k,tester,tau)
+                    if output is not None:
+                        successCount += 1
+                        prevRobot = output
+                        return output,pr
+                if successCount > success_limit:
+                    successCount = 0
 
     def connectVertex(self,knearest,tau):
         # knearest = 10

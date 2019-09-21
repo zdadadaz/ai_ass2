@@ -41,8 +41,28 @@ class EST(ProblemSpec):
         self.collision_check(A  ,mid, n-1,checkList)
         self.collision_check(mid,B, n-1,checkList)
     
-    def sampling_eexy(self,eexy):
+    def sampling_eexy(self,eexy,numSampling):
         np.random.seed(249)
+        minMax = self.get_min_max_len()
+        numSeg = self.get_num_segment()
+
+        grapples = []
+        angles = np.zeros((numSampling,numSeg))
+        lengths = np.zeros((numSampling,numSeg))
+        for i in range(numSeg):
+            if i == 0:
+                angles[:,i] = np.random.rand(1,numSampling)*360 - 180
+            else:
+                angles[:,i] = np.random.rand(1,numSampling)*330 - 165
+            tmp = np.random.rand(1,numSampling) * (minMax[1][i] - minMax[0][i])
+            lengths[:,i] = tmp + minMax[0][i] 
+        for i in range(numSampling):
+            grapples.append(list(eexy))
+        output = np.append(np.asarray(grapples), angles, axis=1)
+        output = np.append(output, lengths, axis=1)
+        grapples_tmp = grapples_tmp.reshape(numSampling,1)
+        output = np.append(output,grapples_tmp,axis=1)
+        return output
 
     def sampling(self, numSampling):
         np.random.seed(30)
