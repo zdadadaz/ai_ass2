@@ -12,7 +12,6 @@ from util import Graph,Vertex
 
 import random
 from visualiser import Visualiser 
-import random as rd
 import numpy as np
 import math
 
@@ -26,7 +25,7 @@ class EST(ProblemSpec):
 
 #   False-> no collision, True -> have collision
 #   input A,B array
-    def collision_check(self,A,B, n):
+    def collision_check(self,A,B, n,checkList):
         if n ==0:
             return False
         # check in the same ee grapple 
@@ -36,12 +35,17 @@ class EST(ProblemSpec):
         mid = (A+B)/2
         mid[-1] = A[-1]
         midRobot = make_robot_config_with_arr(A[0],A[1],mid[2:(2+self.num_segments)],mid[(2+self.num_segments):(2+2*self.num_segments)],A[-1])
+        checkList.append(str(midRobot))
         if not tester.self_obstacle_test(midRobot):
             return True # have collision
-        self.collision_check(A  ,mid, n-1)
-        self.collision_check(mid,B, n-1)
-        
+        self.collision_check(A  ,mid, n-1,checkList)
+        self.collision_check(mid,B, n-1,checkList)
+    
+    def sampling_eexy(self,eexy):
+        np.random.seed(249)
+
     def sampling(self, numSampling):
+        np.random.seed(30)
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
         grapple_point = self.get_grapple_points()
@@ -71,6 +75,7 @@ class EST(ProblemSpec):
 
 
     def sampling_withinD(self, robot,D, numSampling):
+        np.random.seed(980)
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
         grapple_point = self.get_grapple_points()

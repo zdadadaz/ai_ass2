@@ -7,6 +7,13 @@ class Vertex:
         self.parentIs = None
         self.num = number
 
+    def key2list(self):
+        arr = []
+        tmp = self.id.split(' ')
+        for i in tmp:
+            arr.append(i.replace(';',''))
+        return arr
+
     def delete_connect_id(self,key):
         self.connectedTo.pop(key, None)  
         
@@ -45,6 +52,13 @@ class Graph:
         self.numVertices = 0
         self.vertArr = []
 
+    def getAllkeylist(self):
+        arr = []
+        for i in range(self.numVertices):
+            Verid = self.vertArr[i]
+            Ver = self.getVertex(Verid)
+            arr.append(Ver.key2list())
+        return arr
 
     def getNumbVertices(self):
         return self.numVertices

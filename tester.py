@@ -253,6 +253,20 @@ def test_config_distance_out(c1, c2, spec):
         total += abs(c2.lengths[i] - c1.lengths[i]) 
     return total
 
+def test_bounding_box_collision_4sampling(config, spec, obstacles):
+    # return true for collision, false for pass
+    for i in range(spec.num_segments):
+        p = config.points[i]
+        q = config.points[i+1]
+        for o in obstacles:
+            # bounding box check
+            # true->collision, false->ok
+            if test_bounding_box(p, q, (o.x1, o.y1), (o.x2, o.y2)):
+                return True                
+            else:
+                continue
+    return False
+
 def tester_main(input_file,soln_file):
     spec = ProblemSpec(input_file)
     robot_configs = load_output(soln_file)

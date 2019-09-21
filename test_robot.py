@@ -241,6 +241,20 @@ class test_robot:
             return False
         return True
 
+    def test_bounding_box_collision_4sampling(self,config, spec, obstacles):
+        # return true for collision, false for pass
+        for i in range(spec.num_segments):
+            p = config.points[i]
+            q = config.points[i+1]
+            for o in obstacles:
+                # bounding box check
+                # true->collision, false->ok
+                if self.test_bounding_box(p, q, (o.x1, o.y1), (o.x2, o.y2)):
+                    return True                
+                else:
+                    continue
+        return False
+
     def collision_test(self, m, q, tau):
         spec = self.spec
         obstacles = self.get_obstacles(spec)
@@ -268,11 +282,21 @@ class test_robot:
         else:
             return False
 
-# True -> pass, False -> fail
+    # True -> pass, False -> fail
     def self_obstacle_test(self,q):
         spec = self.spec
         obstacles = self.get_obstacles(spec)
         if self.test_obstacle_collision(q, spec, obstacles):
+            return True
+        else:
+            return False
+
+        # True -> collision, False -> pass
+    def self_bounding_collision_test(self,q):
+        spec = self.spec
+        obstacles = self.get_obstacles(spec)
+        # return true for collision, false for pass
+        if self.test_bounding_box_collision_4sampling(q, spec, obstacles):
             return True
         else:
             return False
