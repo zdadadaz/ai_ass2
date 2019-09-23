@@ -82,7 +82,8 @@ class EST(ProblemSpec):
         lengths = np.zeros((numSampling,numSeg))
         for i in range(numSeg):
             if i == 0:
-                angles[:,i] = np.random.rand(1,numSampling)*360 - 180
+                # angles[:,i] = np.random.rand(1,numSampling)*360 - 180
+                angles[:,i] = np.random.rand(1,numSampling)*180
             else:
                 angles[:,i] = np.random.rand(1,numSampling)*330 - 165
             tmp = np.random.rand(1,numSampling) * (minMax[1][i] - minMax[0][i])
