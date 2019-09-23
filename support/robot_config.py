@@ -88,8 +88,28 @@ class RobotConfig:
             arr.append(2)
         return arr
     
+    def get_HeadeePos(self):
+        if self.ee1_grappled:
+            return self.points[0]
+        else:
+            return self.points[-1]            
+
+
     def get_EndeePos(self):
-        return self.points[-1]
+        if self.ee1_grappled:
+            return self.points[-1]
+        else:
+            return self.points[0]  
+
+    def get_position(self):
+        if self.ee1_grappled:
+            return self.points
+        else:
+            arr = []
+            for i in self.points.reverse():
+                arr.append(i)
+            return arr
+        
 
     def get_ee1(self):
         """

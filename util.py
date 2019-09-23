@@ -43,7 +43,7 @@ class Vertex:
 
 #   False -> empty
     def checkConnections(self):
-        if self.connNum ==0:
+        if self.connNum <=0:
             return False
         else:
             return True
@@ -118,6 +118,8 @@ class Graph:
 
     def __iter__(self):
         return iter(self.vertList.values())
+
+
 
 
 def write_sampling_config(filename,numSeg, robot_config_list):

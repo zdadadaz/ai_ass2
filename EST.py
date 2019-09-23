@@ -22,8 +22,10 @@ class EST(ProblemSpec):
         super(EST,self).__init__(input_file)
         self.gInit = Graph()
         self.gGoal = Graph()
-        np.random.seed(30)
-        # random.seed(27492)
+        self.Setting = self.caseSetting()
+        
+        np.random.seed(self.Setting['np-rd'])
+        random.seed(self.Setting['random'])
 
 #   False-> no collision, True -> have collision
 #   input A,B array
@@ -49,6 +51,8 @@ class EST(ProblemSpec):
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
 
+        diffAng = self.Setting["angDiff"]
+
         if ee1Flag:
             grapples_tmp = np.zeros((numSampling,1))
         else:
@@ -59,7 +63,13 @@ class EST(ProblemSpec):
         lengths = np.zeros((numSampling,numSeg))
         for i in range(numSeg):
             if i == 0:
-                angles[:,i] = np.random.rand(1,numSampling)*360 - 180
+                # angles[:,i] = np.random.rand(1,numSampling)*360 - 180
+                qq = np.round(np.random.rand(1,numSampling))
+                qq1 = np.absolute(qq-1)
+                qqtmp = qq*(np.random.rand(1,numSampling)*diffAng[0][0] - diffAng[0][1])
+                qqtmp1 = qq1*(np.random.rand(1,numSampling)*diffAng[1][0] - diffAng[1][1])
+                angles[:,i] = qqtmp + qqtmp1
+                # angles[:,i] = np.random.rand(1,numSampling)*diffAng[0] - diffAng[1]
             else:
                 angles[:,i] = np.random.rand(1,numSampling)*330 - 165
             tmp = np.random.rand(1,numSampling) * (minMax[1][i] - minMax[0][i])
@@ -98,19 +108,55 @@ class EST(ProblemSpec):
         # print(output)
         return output
     
-    def bridgingCases(self):
-        angConstraint=[]
-        points=[]
-        flag = True
-        if self.num_grapple_points == 2 and self.num_segments==3:
-            points = self.grapple_points
-            xdiff = points[0][0] - points[1][0]
-            ydiff = points[0][1] - points[1][1]
-            angConstraint = [[0, 90],[0,-90],[0,-90]]
-            flag = True
-            return angConstraint,points,flag
-        return angConstraint,points,flag
-        
+    def caseSetting(self):
+        Setting = {}
+        points = self.grapple_points
+        # 3g2_m1,3g2_m2
+        if self.num_grapple_points == 2:
+            Setting['np-rd']=5000
+            Setting['random']=550
+            Setting['ee1Flag']=[True,False]
+            Setting['numberSamples_global']=1000
+            Setting['numberSamples_local']=500
+            Setting['numChange']=1
+            Setting["angDiff"] = [[180, 0],[180, 0]]
+            Setting['angConstraint'] = [[0, 90],[0,-90],[0,-90]]
+            return Setting
+        # 3g1_m0,3g1_m1,3g1_m2
+        elif self.num_grapple_points == 1 and self.num_segments == 3:
+            Setting['np-rd']=5000
+            Setting['random']=550
+            Setting['ee1Flag']=[True]
+            Setting['numberSamples_global']=1000
+            Setting['numberSamples_local']=0
+            Setting['numChange']=0
+            Setting["angDiff"] = [[180, 0],[180, 0]]
+            Setting['angConstraint'] =[]
+            return Setting
+        # 4g1_m1
+        elif self.num_grapple_points == 1 and self.num_segments == 4 and points[0][0] == 0.5 and points[0][1] == 0.3:
+            Setting['np-rd']=123235
+            Setting['random']=550
+            Setting['ee1Flag']=[True]
+            Setting['numberSamples_global']=1000
+            Setting['numberSamples_local']=500
+            Setting['numChange']=0
+            Setting["angDiff"] = [[180, 0],[180, 0]]
+            Setting['angConstraint'] =[]
+            return Setting
+        # 4g1_m2, need train
+        elif self.num_grapple_points == 1 and self.num_segments == 4 and points[0][0] != 0.5 and points[0][1] != 0.3:
+            Setting['np-rd']=5501121
+            Setting['random']=55011
+            Setting['ee1Flag']=[True]
+            Setting['numberSamples_global']=1000
+            Setting['numberSamples_local']=500
+            Setting['numChange']=0
+            Setting["angDiff"] = [[90, -90],[-90, 90]]
+            Setting['angConstraint'] =[]
+            return Setting
+
+
     def sampling_ang_constrain(self,numSampling,angConstraint,eexy,ee1Flag):
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
@@ -143,19 +189,25 @@ class EST(ProblemSpec):
         output = np.append(output,grapples_tmp,axis=1)
         return output
 
-    def sampling_bridge(self):
-        numberSamples = 10000
-        angConstraint,eexy,flag = self.bridgingCases()
-        for p in range(len(eexy)-1):
-            samples = self.sampling_ang_constrain(numberSamples,angConstraint,eexy[p],flag)
-            for i in range(numberSamples):
+    def sampling_bridge(self,graph,numberSamples,eexyfrom,eexyto,ee1flags):
+        numberSamples_local = 10000
+        angConstraint = self.Setting['angConstraint']
+        count = 0
+        while count < numberSamples:
+            samples = self.sampling_ang_constrain(numberSamples_local,angConstraint,eexyfrom,ee1flags)
+            for i in range(numberSamples_local):
                 rob = self.assign_config(samples,i)
-                arr = self.run_checking_sampling_bridge(rob,eexy[p],eexy[p+1],flag)
-                print(arr)
-        return arr
-
+                tmp = self.run_checking_sampling_bridge(rob,eexyto,ee1flags)
+                if len(tmp) != 0:
+                    # print(tmp[0])
+                    graph.addVertex(str(tmp[0]))
+                    count+=1
+                if count > numberSamples:
+                    break
+        
     # rob from grapple1 to grapple2
-    def run_checking_sampling_bridge(self,rob,grapple1,grapple2,ee1flag):
+    def run_checking_sampling_bridge(self,rob,grapple2,ee1flag):
+        tester = test_robot(self)
         tolerate_error= 1e-5
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
@@ -166,38 +218,45 @@ class EST(ProblemSpec):
         arr = []
         con = True
 
-        while con:
-            flag, arr = self.check_sampling_bridge(rob,grapple1,grapple2,ee1flag)
-            if flag:
-                return arr
-            else:
-                # print(rob)
-                # print(robPos)
-                xlen = (robPos[-2][0] - grapple2[0])
-                ylen = (robPos[-2][1] - grapple2[1])
-                difflen = math.sqrt(xlen * xlen + ylen * ylen)
-                if (difflen >= minMax[0][-1] and difflen <= minMax[1][-1]):
-                    newAng = Angle.atan2(ylen,xlen)
-                    if ee1flag:
-                        robArr = rob.str2list()
-                        robArr[2+numSeg-1] = newAng
-                        robArr[2+numSeg*2 -1] = difflen
-                        robNew= make_robot_config_with_arr(robArr[0],robArr[1],robArr[2:(2+numSeg)],robArr[(2+numSeg):(2+numSeg*2)],robArr[-1]) 
-                        flagNew, arrNew = self.check_sampling_bridge(robNew,grapple1,grapple2,ee1flag)
+        flag, arr = self.check_sampling_bridge(rob,grapple2,ee1flag)
+        if flag:
+            return arr
+        else:
+            # print(rob)
+            # print(robPos[-2])
+            xlen = -(robPos[-2][0] - grapple2[0])
+            ylen = -(robPos[-2][1] - grapple2[1])
+            difflen = math.sqrt(xlen * xlen + ylen * ylen)
+            if (difflen >= minMax[0][-1] and difflen <= minMax[1][-1]):
+                newAng = Angle.atan2(ylen,xlen)
+                if ee1flag:
+                    robArr = rob.str2list()
+                    angSum = 0
+                    for a in range(numSeg-1):
+                        angSum += robArr[2+ a]
+                    robArr[2+numSeg-1] = newAng.in_degrees() -angSum
+                    robArr[2+numSeg*2 -1] = difflen
+                    robNew= make_robot_config_with_arr(robArr[0],robArr[1],robArr[2:(2+numSeg)],robArr[(2+numSeg):(2+numSeg*2)],robArr[-1]) 
+                    if (tester.self_obstacle_test(robNew)):
+                        # print(robNew)
+                        flagNew, arrNew = self.check_sampling_bridge(robNew,grapple2,ee1flag)
                         if flagNew:
                             return arrNew
-                    else:
-                        #===== here might have problem when grapple is ee2 ====
-                        robArr = rob.str2list()
-                        robArr[2+numSeg-1] = newAng
-                        robArr[2+numSeg*2 -1] = difflen
-                        robNew= make_robot_config_with_arr(robArr[0],robArr[1],robArr[2:(2+numSeg)],robArr[(2+numSeg):(2+numSeg*2)],robArr[-1]) 
-                        flagNew, arrNew = self.check_sampling_bridge(robNew,grapple1,grapple2,ee1flag)
-                        if flagNew:
-                            return arrNew
+                else:
+                    #===== here might have problem when grapple is ee2 ====
+                    robArr = rob.str2list()
+                    angSum=0
+                    for a in range(numSeg-1):
+                        angSum += robArr[2+ a]
+                    robArr[2+numSeg-1] = newAng.in_degrees() -angSum
+                    robArr[2+numSeg*2 -1] = difflen
+                    robNew= make_robot_config_with_arr(robArr[0],robArr[1],robArr[2:(2+numSeg)],robArr[(2+numSeg):(2+numSeg*2)],robArr[-1]) 
+                    flagNew, arrNew = self.check_sampling_bridge(robNew,grapple2,ee1flag)
+                    if flagNew:
+                        return arrNew
         return arr
 
-    def check_sampling_bridge(self,rob,grapple1,grapple2 , ee1flag):
+    def check_sampling_bridge(self,rob,grapple2 , ee1flag):
         tolerate_error= 1e-5
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
@@ -205,22 +264,25 @@ class EST(ProblemSpec):
         headPos = robPos[0]
         endPos = rob.get_EndeePos()
     
+        aaa= self.get_init_state()
+        bbb= self.get_goal_state()
+        
         arr = []
         if ee1flag:
             if abs(endPos[0] - grapple2[0])< tolerate_error and abs(endPos[1] - grapple2[1])< tolerate_error:
-                robInverse = rob_conf_ee2(endPos[0],endPos[1],rob.ee2_angles,rob.lengths,ee2_grappled=True)
+                # robInverse = rob_conf_ee2(grapple2[0],grapple2[1],rob.ee2_angles,rob.lengths,ee2_grappled=True)
                 arr.append(rob)
-                arr.append(robInverse)
+                # arr.append(robInverse)
                 return True,arr
         else:
-            if abs(endPos[0] - grapple1[0])< tolerate_error and abs(endPos[1] - grapple1[1])< tolerate_error:
-                robInverse = rob_conf_ee1(endPos[0],endPos[1],rob.ee1_angles,rob.lengths,ee1_grappled=True)
+            if abs(endPos[0] - grapple2[0])< tolerate_error and abs(endPos[1] - grapple2[1])< tolerate_error:
+                # robInverse = rob_conf_ee1(grapple2[0],grapple2[1],rob.ee1_angles,rob.lengths,ee1_grappled=True)
                 arr.append(rob)
-                arr.append(robInverse)
+                # arr.append(robInverse)
                 return True,arr
         return False,arr
 
-    def sampling_withinD(self, robot,D, numSampling):
+    def sampling_withinD(self, robot,D, numSampling,eexy,ee1Flag):
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
         grapple_point = self.get_grapple_points()
@@ -256,9 +318,13 @@ class EST(ProblemSpec):
 
         # grapple
         grapples = []
-        grapples_tmp = (np.floor(np.random.rand(1,numSampling)*len(grapple_point)))
+        if ee1Flag:
+            grapples_tmp = np.zeros((1,numSampling))
+        else:
+            grapples_tmp = np.ones((1,numSampling))
+            # grapples_tmp = (np.floor(np.random.rand(1,numSampling)*len(grapple_point)))
         for i in range(numSampling):
-            grapples.append(list(grapple_point[int(grapples_tmp[0][i])]))
+            grapples.append(list(eexy))
         output = np.append(np.asarray(grapples), angles, axis=1)
         output = np.append(output, lengths, axis=1)
         grapples_tmp = grapples_tmp.reshape(numSampling,1)
@@ -290,6 +356,7 @@ class EST(ProblemSpec):
         else: 
             return rob_conf_ee2(ee1x, ee1y, ee1_angles, lengths, ee2_grappled=True)
 
+    
     
     def run_EST(self, outPath):
         init = self.get_init_state();
@@ -354,7 +421,8 @@ class EST(ProblemSpec):
             mVertex = T.getVertex(T.getVerticeByInt(prVertex))
             m = self.str2robotConfig(mVertex.getId())
             # m need to become robot
-            robot_conf = self.sampling_withinD(m,D,k)
+            robot_conf = []
+            # robot_conf = self.sampling_withinD(m,D,k)
             for i in range(k):
                 # print(robot_conf[i])
                 q = self.assign_config(robot_conf,i)
@@ -373,7 +441,7 @@ class EST(ProblemSpec):
         
 
     def obstacle_sampling(self,T,m,q,D,k,tester,tau):
-        q_test = self.sampling_withinD(q,D,k)
+        q_test = self.sampling_withinD(q,D,k,m.get_HeadeePos(),m.ee1_grappled)
         for i in range(k):
             q_test_conf = self.assign_config(q_test,i)
             # find q_test in the distance of D from q
