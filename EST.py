@@ -37,8 +37,9 @@ class EST(ProblemSpec):
         mid = (A+B)/2
         mid[-1] = A[-1]
         midRobot = make_robot_config_with_arr(A[0],A[1],mid[2:(2+self.num_segments)],mid[(2+self.num_segments):(2+2*self.num_segments)],A[-1])
+        # print(midRobot)
         checkList.append(str(midRobot))
-        if not tester.self_obstacle_test(midRobot):
+        if not tester.self_obstacle_env_test(midRobot):
             return True # have collision
         self.collision_check(A  ,mid, n-1,checkList)
         self.collision_check(mid,B, n-1,checkList)

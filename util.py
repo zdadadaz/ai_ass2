@@ -25,7 +25,9 @@ class Vertex:
         return arr
 
     def delete_connect_id(self,key):
-        self.connectedTo.pop(key, None)  
+        if self.connectedTo.pop(key, None) is not None:
+            self.connNum -= 1
+        
         
     def addNeighbor(self,nbr,weight=0):
         self.connNum += 1
@@ -50,8 +52,10 @@ class Vertex:
         return self.connectedTo.keys()
     
     def getConnectionsIds(self):
+        # arr = []
         arr = set()
         for i in self.connectedTo.keys():
+            # arr.append(i)
             arr.add(i)
         return arr
 
@@ -106,8 +110,8 @@ class Graph:
             nv = self.addVertex(f)
         if t not in self.vertList:
             nv = self.addVertex(t)
-        self.vertList[f].addNeighbor(self.vertList[t], cost)
-        self.vertList[t].addParent(self.vertList[f],cost)
+        self.vertList[f].addNeighbor(self.vertList[t].getId(), cost)
+        self.vertList[t].addParent(self.vertList[f].getId(),cost)
 
     def getVertices(self):
         return self.vertList.keys()
@@ -126,7 +130,7 @@ def write_sampling_config(filename,numSeg, robot_config_list):
             f.write(' '+str(rc[2+i]))
         f.write(';')
         for i in range(numSeg):
-            f.write(' '+str(rc[5+i]))
+            f.write(' '+str(rc[2+numSeg+i]))
         f.write('\n')
     f.close()
 # file = './testcases/3g1_m1.txt'

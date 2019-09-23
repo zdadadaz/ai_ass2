@@ -301,6 +301,16 @@ class test_robot:
         else:
             return False
 
+    # True -> pass, False -> fail
+    def self_obstacle_env_test(self,q):
+        spec = self.spec
+        obstacles = self.get_obstacles(spec)
+        if self.test_obstacle_collision(q, spec, obstacles) and self.test_environment_bounds(q):
+            return True
+        else:
+            return False
+
+
         # True -> collision, False -> pass
     def self_bounding_collision_test(self,q):
         spec = self.spec

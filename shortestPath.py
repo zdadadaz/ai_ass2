@@ -81,18 +81,16 @@ class astar():
                 for i in curVertex.getConnections():
                     newCost = curNode.sofar_cost + self.actioncost
                     # if i.getId() not in visited or (newCost < weights[i.getId()].sofar_cost):
-                    if i.getId() not in visited:
-                        newNode = astar(state=i.getId(),parent=curNode,depth = curNode.depth+1,cost =newCost)
-                        weights[i.getId()] = newNode
-                        weights[i.getId()].sofar_cost = newCost
-                        priority_cost = newCost + self.heuristic_func(i.getId(),finish,spec)
-                        queue.put(Prioritize(int(priority_cost),weights[i.getId()]))
-                    elif newCost < weights[i.getId()].sofar_cost:
-                        # newNode = astar(state=i.getId(),parent=curNode,depth = curNode.depth+1,cost =newCost)
-                        # weights[i.getId()] = newNode
-                        weights[i.getId()].sofar_cost = newCost
-                        priority_cost = newCost + self.heuristic_func(i.getId(),finish,spec)
-                        queue.put(Prioritize(int(priority_cost),weights[i.getId()]))
+                    if i not in visited:
+                        newNode = astar(state=i,parent=curNode,depth = curNode.depth+1,cost =newCost)
+                        weights[i] = newNode
+                        weights[i].sofar_cost = newCost
+                        priority_cost = newCost + self.heuristic_func(i,finish,spec)
+                        queue.put(Prioritize(int(priority_cost),weights[i]))
+                    elif newCost < weights[i].sofar_cost:
+                        weights[i].sofar_cost = newCost
+                        priority_cost = newCost + self.heuristic_func(i,finish,spec)
+                        queue.put(Prioritize(int(priority_cost),weights[i]))
         return []
 
     def astar_run_mutipleGraph(self,graph,finish, spec):
@@ -123,16 +121,16 @@ class astar():
                 for i in curVertex.getConnections():
                     newCost = curNode.sofar_cost + self.actioncost
                     # if i.getId() not in visited or (newCost < weights[i.getId()].sofar_cost):
-                    if i.getId() not in visited:
+                    if i not in visited:
+                        newNode = astar(state=i,parent=curNode,depth = curNode.depth+1,cost =newCost)
+                        weights[i] = newNode
+                        weights[i].sofar_cost = newCost
+                        priority_cost = newCost + self.heuristic_func(i,finish,spec)
+                        queue.put(Prioritize(int(priority_cost),weights[i]))
+                    elif newCost < weights[i].sofar_cost:
                         newNode = astar(state=i.getId(),parent=curNode,depth = curNode.depth+1,cost =newCost)
                         weights[i.getId()] = newNode
-                        weights[i.getId()].sofar_cost = newCost
-                        priority_cost = newCost + self.heuristic_func(i.getId(),finish,spec)
-                        queue.put(Prioritize(int(priority_cost),weights[i.getId()]))
-                    elif newCost < weights[i.getId()].sofar_cost:
-                        # newNode = astar(state=i.getId(),parent=curNode,depth = curNode.depth+1,cost =newCost)
-                        # weights[i.getId()] = newNode
-                        weights[i.getId()].sofar_cost = newCost
-                        priority_cost = newCost + self.heuristic_func(i.getId(),finish,spec)
-                        queue.put(Prioritize(int(priority_cost),weights[i.getId()]))
+                        weights[i].sofar_cost = newCost
+                        priority_cost = newCost + self.heuristic_func(i,finish,spec)
+                        queue.put(Prioritize(int(priority_cost),weights[i]))
         return []

@@ -38,8 +38,8 @@ class PRM(EST):
         self.numlayer =2
 
     def run_PRM(self,outPath):
-        numberSamples_global = 5000
-        numberSamples_local = 1000
+        numberSamples_global = 1000
+        numberSamples_local = 500
         knearest = 20
         expand_tau = 0.4
         conn_tau = 0.4
@@ -51,30 +51,45 @@ class PRM(EST):
         g = 0
         gPoints =self.get_grapple_points()
         graph = self.gDict[gPoints[g]]
+        count_ite = 0
+        addState = 1
+        while True:
+            count_ite += 1
+            print("build global graph")
+            self.buildGraph(graph,numberSamples_global,knearest,global_tau,addState)
+            addState = 0
+            
+            print("build local graph")
+            self.PRM_expansionBuildGraph(graph,numberSamples_local,expand_tau)
+            self.connectVertex(knearest,conn_tau)
+            
+            print("global collision check")
+            self.PRM_collision_check(graph,clayer)
+            # print("local collision check")
+            # for i in range(self.num_grapple_points):
+            #     self.PRM_collision_check(self.gDict[gPoints[i]],clayer)
+            
+            print("total vertex number:", graph.getNumbVertices())
+
+            arr = []
+            arrTmp = graph.vertArr
+            for i in range(len(arrTmp)):
+                arr.append(arrTmp[i][:-3])
+            write_robot_config_list_to_file("tmp_output.txt",arr) 
         
-        print("build global graph")
-        self.buildGraph(graph,numberSamples_global,knearest,global_tau)
-        # print("build local graph")
-        # self.PRM_expansionBuildGraph(graph,numberSamples_local,expand_tau)
-        # self.connectVertex(knearest,conn_tau)
-        
-        print("global collision check")
-        self.PRM_collision_check(graph,clayer)
-        # print("local collision check")
-        # for i in range(self.num_grapple_points):
-        #     self.PRM_collision_check(self.gDict[gPoints[i]],clayer)
-        
-        init = self.get_init_state()
-        state = str(init)
-        search = astar(state)
-        print("find shortest path")
-        path = search.astar_run(graph,str(self.get_goal_state()),self)
-        if len(path) == 0:
-            print("==== Can't find the shortest path ====")
-            # return False
-        else:
-            print("Found shortest path")
-            pathTot.append(path)
+
+            init = self.get_init_state()
+            state = str(init)
+            search = astar(state)
+            print("find shortest path")
+            path = search.astar_run(graph,str(self.get_goal_state()),self)
+            if len(path) == 0:
+                print("==== Can't find the shortest path ====")
+                # return False
+            else:
+                print("Found shortest path")
+                pathTot.append(path)
+                break
     
         arr =[]
         # print collision check point in output
@@ -86,7 +101,7 @@ class PRM(EST):
         write_robot_config_list_to_file(outPath,arr) 
         return True
 
-    def buildGraph(self,graph,numberSamples,knearest,tau):
+    def buildGraph(self,graph,numberSamples,knearest,tau,addState):
         tester = test_robot(self)
         points = self.grapple_points
         # samples = self.sampling_eexy(points[0],numberSamples,True)
@@ -95,25 +110,19 @@ class PRM(EST):
 
         count =0
         loop_count = 0
-
         # arr = self.sampling_bridge()
 
-        while graph.getNumbVertices()<(numberSamples/4):
+        while count<numberSamples:
         # while graph.getNumbVertices()<(numberSamples):
             samples = self.sampling(numberSamples_tmp)
-            print("loop_count = ",loop_count)
-            print("graph number Vertices = ",graph.getNumbVertices())
+            # print("loop_count = ",loop_count)
+            # print("count number Vertices = ",count)
             loop_count += 1
+            addCount = 0
             for sp in range(numberSamples_tmp):
+                addCount +=1
                 rob = self.assign_config(samples,sp)
                 if tester.self_collision_test(rob):
-                    # print(rob) 
-                    # init = self.str2robotConfig(str(self.get_init_state()))
-                    # goal = self.str2robotConfig(str(self.get_goal_state()))
-                    # sample bridge
-                    # self.sampling_bridge(rob,points[0],points[1])
-                    # self.sampling_bridge(goal,points[0],points[1])
-
                     graph.addVertex(str(rob))
                     # points = rob.str2list()[:-1]
                     points = rob.points
@@ -128,44 +137,58 @@ class PRM(EST):
                         count+=1
                     if count > numberSamples:
                         break
+            # print("addCount = ",addCount)
+        if addState==1:
+            init = self.get_init_state()
+            graph.addVertex(str(init))
+            # myarray = np.asarray(init.str2list()[:-1])
+            myarray = np.asarray(init.points)
+            r,c = myarray.shape
+            myarray = myarray.reshape(1,c*r)
+            output = np.vstack([output, myarray])
+            goal = self.get_goal_state()
             
-        init = self.get_init_state()
-        graph.addVertex(str(init))
-        # myarray = np.asarray(init.str2list()[:-1])
-        myarray = np.asarray(init.points)
-        r,c = myarray.shape
-        myarray = myarray.reshape(1,c*r)
-        output = np.vstack([output, myarray])
-        goal = self.get_goal_state()
-        
-        graph.addVertex(str(goal))
-        # myarray = np.asarray(goal.str2list()[:-1])
-        myarray = np.asarray(goal.points)
-        r,c = myarray.shape
-        myarray = myarray.reshape(1,c*r)
-        output = np.vstack([output, myarray])
-        r,c = output.shape
-        tree = KDTree(output,leaf_size=2)
-        # print(output)
-        for sp in range(r):
-            if sp >= r-2:
-                knearest = 2
-            dist, ind = tree.query(output[sp:sp+1], k=knearest) 
-            curNode = graph.getVerticeByInt(sp)
-            m = self.str2robotConfig(curNode)
-            for kn in range(1,knearest):
-                knNode = graph.getVerticeByInt(ind[0][kn])
-                q = self.str2robotConfig(knNode)
-                if (sp < r-2):
+            graph.addVertex(str(goal))
+            # myarray = np.asarray(goal.str2list()[:-1])
+            myarray = np.asarray(goal.points)
+            r,c = myarray.shape
+            myarray = myarray.reshape(1,c*r)
+            output = np.vstack([output, myarray])
+            r,c = output.shape
+            tree = KDTree(output,leaf_size=2)
+            # print(output)
+            for sp in range(r):
+                if sp >= r-2:
+                    knearest = 2
+                dist, ind = tree.query(output[sp:sp+1], k=knearest) 
+                curNode = graph.getVerticeByInt(sp)
+                m = self.str2robotConfig(curNode)
+                for kn in range(1,knearest):
+                    knNode = graph.getVerticeByInt(ind[0][kn])
+                    q = self.str2robotConfig(knNode)
+                    if (sp < r-2):
+                        if(tester.test_config_distance(m,q,self,tau)):
+                            graph.addEdge(curNode,knNode)
+                    else:
+                        graph.addEdge(curNode,knNode)
+        else: 
+            r,c = output.shape
+            tree = KDTree(output,leaf_size=2)
+            # print(output)
+            for sp in range(r):
+                dist, ind = tree.query(output[sp:sp+1], k=knearest) 
+                curNode = graph.getVerticeByInt(sp)
+                m = self.str2robotConfig(curNode)
+                for kn in range(1,knearest):
+                    knNode = graph.getVerticeByInt(ind[0][kn])
+                    q = self.str2robotConfig(knNode)
                     if(tester.test_config_distance(m,q,self,tau)):
                         graph.addEdge(curNode,knNode)
-                else:
-                    graph.addEdge(curNode,knNode)
-
+                
     def PRM_expansionBuildGraph(self,graph,numberOfsampling,tau):
         # numberOfsampling = 100
         success_limit = 10
-        D = [tau,0.3]
+        D = [tau,0.1]
         # D = [0.4,1e-3]
         # tau = 0.5
         k =1
@@ -177,10 +200,11 @@ class PRM(EST):
         successCount = 0
         prevRobot = None
         loop_count = 0
-        while T.getNumbVertices() < numberOfsampling:
+        count_node =0
+        while count_node < numberOfsampling:
             loop_count+=1
-            print("loop_count=",loop_count)
-            print("T.getNumbVertices()=",T.getNumbVertices())
+            # print("loop_count=",loop_count)
+            # print("T.getNumbVertices()=",T.getNumbVertices())
             # print(T.getNumbVertices())
             # over success_limit success, change node
             if prevRobot is not None and successCount != 0:
@@ -206,6 +230,7 @@ class PRM(EST):
                 # f = open("tmp_output.txt", "a")
                 # f.write(str(q)[:-3] + '\n')
                 # f.close()
+                count_node+=1
                 T.addEdge(str(m),str(q))
                 # T.addVertex(str(q))
                 successCount += 1
@@ -215,6 +240,7 @@ class PRM(EST):
                 successCount = 0
                 output = self.obstacle_sampling(T,m,q,D,k,tester,tau)
                 if output is not None:
+                    count_node+=1
                     successCount += 1
                     prevRobot = output
 
@@ -301,17 +327,21 @@ class PRM(EST):
             verA = gaph.getVertex(ver)
             connects = verA.getConnections()
             robA = self.str2robotConfig(verA.getId())
+            queue4delete = []
             for conn in connects:
-                conn_key = conn.getId()
+                conn_key = conn
                 if ((ver,conn_key) not in visited) and ((conn_key,ver) not in visited):
                     visited.add((ver,conn_key))
                     visited.add((conn_key,ver))
-                    verB = conn
+                    verB = gaph.getVertex(conn)
                     robB = self.str2robotConfig(verB.getId())
-                    # if (ver == "0.5 0.3; 162.42884892 -66.01242862 -84.80203747; 0.2 0.2 0.2; 1") or \
-                    #     (verB.getId() == "0.5 0.3; 162.42884892 -66.01242862 -84.80203747; 0.2 0.2 0.2; 1"):
-                        # qq=1
-                        # print("error")
+                    # if (ver == "0.5 0.3; 21.27553374 43.33302171 38.52536431 2.34357269; 0.14400488 0.18625804 0.2 0.1; 1") or \
+                    #     (verB.getId() == "0.5 0.3; 21.27553374 43.33302171 38.52536431 2.34357269; 0.14400488 0.18625804 0.2 0.1; 1"):
+                    #     qq=1
+                    #     print("error")
+                    # robA = self.str2robotConfig("0.5 0.3; 21.27553374 43.33302171 38.52536431 2.34357269; 0.14400488 0.18625804 0.2 0.1; 1")
+                    # robB = self.str2robotConfig("0.5 0.3; 41.90413911 65.32649907 57.55880139 18.82617511; 0.12183253 0.19787794 0.1014939 0.1556962; 1")
+            
                     # bounding box check, can decrease checking times a lot
                     checkList1 =[]
                     flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),1,checkList1)
@@ -325,8 +355,14 @@ class PRM(EST):
                     self.collision_checkList[(ver,conn_key)] = checkList
                     self.collision_checkList[(conn_key,ver)] = checkList
                     if flag:
-                        verA.delete_connect_id(conn_key)
-                        verB.delete_connect_id(ver)
+                        # verA.delete_connect_id(conn_key)
+                        # verB.delete_connect_id(ver)
+                        queue4delete.append(conn_key)
+            for dd in queue4delete:
+                verA.delete_connect_id(dd)
+                verB = gaph.getVertex(dd)
+                verB.delete_connect_id(verA.getId())
+
         print("====  collision check times ==== ", count)
     def add_collision2output(self,graph, collision_dict,arr,path):
         for i in range(len(path)):
