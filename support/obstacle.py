@@ -26,3 +26,6 @@ class Obstacle:
             return True
         else:
             return False
+
+    def diff_from_obstacle(self, x,y):
+        return abs(x - self.x1) + abs(x - self.x2) + abs(y - self.y1) + abs(y - self.y2) 

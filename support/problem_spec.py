@@ -121,11 +121,14 @@ class ProblemSpec:
     def get_min_max_len(self):
         return (self.min_lengths,self.max_lengths)
 
-    def check_in_obstacles(self,xy):
+    def dist_to_obstacles(self,xy):
+        minDiff = 100000
         for i in self.obstacles:
-            if (i.check_in_obstacle(xy[0],xy[1])):
-                return True
-        return False
+            tmp = i.diff_from_obstacle(xy[0],xy[1])
+            if(tmp < minDiff):
+                minDiff = tmp
+        return minDiff
+        
     def get_init_state(self):
         return self.initial
     def get_goal_state(self):

@@ -1,3 +1,4 @@
+from support.angle import Angle
 
 class Vertex:
     def __init__(self,key, number):
@@ -6,18 +7,28 @@ class Vertex:
         # self.parentIs = {}
         self.parentIs = None
         self.num = number
+        self.connNum = 0
 
     def key2list(self):
+        # not include the last flag of ee
         arr = []
         tmp = self.id.split(' ')
-        for i in tmp:
-            arr.append(i.replace(';',''))
+        segNum = int((len(tmp)-3)/2)
+        for i in range(len(tmp)-1):
+            if i>1 and i <= 1+segNum :
+                qq = float(tmp[i].replace(';',''))
+                tmpAng = Angle(degrees=qq)
+                qq = tmpAng.in_radians()
+            else:
+                qq = float(tmp[i].replace(';',''))
+            arr.append(qq)
         return arr
 
     def delete_connect_id(self,key):
         self.connectedTo.pop(key, None)  
         
     def addNeighbor(self,nbr,weight=0):
+        self.connNum += 1
         self.connectedTo[nbr] = weight
     
     # def addParent(self,nbr,weight=0):
@@ -25,16 +36,24 @@ class Vertex:
     def addParent(self,nbr,weight=0):
         self.parentIs= nbr
 
-
     def __str__(self):
         return str(self.id) + ' connectedTo: ' + str([x.id for x in self.connectedTo])
 
 #   False -> empty
     def checkConnections(self):
-        return bool(self.connectedTo)
+        if self.connNum ==0:
+            return False
+        else:
+            return True
 
     def getConnections(self):
         return self.connectedTo.keys()
+    
+    def getConnectionsIds(self):
+        arr = set()
+        for i in self.connectedTo.keys():
+            arr.add(i)
+        return arr
 
     def getParents(self):
         return self.parentIs

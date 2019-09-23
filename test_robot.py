@@ -4,6 +4,7 @@ from support.robot_config import RobotConfig, make_robot_config_from_ee1
 from support.problem_spec import ProblemSpec
 from support.obstacle import Obstacle
 from support.angle import Angle
+import numpy as np
 
 class test_robot:
     def __init__(self,spec):
@@ -254,6 +255,15 @@ class test_robot:
                 else:
                     continue
         return False
+
+    def test_config_pos_distance_tau(self,c1, c2, tau):
+        c1arr = np.asarray(c1.points) 
+        c2arr = np.asarray(c2.points)
+        diff = np.sum(np.abs(c1arr-c2arr))
+        if diff>tau:
+            return False
+        else:
+            return True
 
     def collision_test(self, m, q, tau):
         spec = self.spec

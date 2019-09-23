@@ -13,6 +13,7 @@ class Interpolation:
     def run_Interpolate(self):
         robots = []
         stepslength = 1e-3
+        
         for i in range(len(self.allv)-1):
             robot1 = self.Coefstr2arr(self.allv[i])
             robot2 = self.Coefstr2arr(self.allv[i+1])
@@ -21,6 +22,12 @@ class Interpolation:
                 wholeArray = arr
             else:
                 wholeArray = np.vstack([wholeArray, arr])
+        
+        numSeg = int((len(robot2)-2)/2)
+        for j in range(numSeg):
+            tmpAng = Angle(radians=robot2[j+2])
+            robot2[2+j] = tmpAng.in_degrees()
+            
         wholeArray = np.vstack([wholeArray, np.asarray(robot2)])
         return wholeArray
 
@@ -32,6 +39,8 @@ class Interpolation:
         rob1 = np.asarray(rob1)
         rob2 = np.asarray(rob2)
         
+        numSeg = int((len(rob1)-2)/2)
+
         diff = abs(rob1[2:] - rob2[2:])
         step = (np.floor(diff/stepslength))
         step = step.astype(int)
@@ -44,10 +53,18 @@ class Interpolation:
             arr = []
             if (step[i] ==0):
                 for j in range(maxStep):
-                    arr.append(rob1[i+2])
+                    if i<numSeg:
+                        tmpAng = Angle(radians=rob1[i+2])
+                        arr.append(tmpAng.in_degrees())
+                    else:
+                        arr.append(rob1[i+2])
             else:
                 for j in range(maxStep):
-                    arr.append(rob1[i+2] + j * stepslength)
+                    if i<numSeg:
+                        tmpAng = Angle(radians=(rob1[i+2]+ j * stepslength))
+                        arr.append(tmpAng.in_degrees())
+                    else:
+                        arr.append(rob1[i+2] + j * stepslength)
             if i == 0:
                 whole = np.asarray(arr)
             else:
@@ -72,7 +89,8 @@ class Interpolation:
         output.append(ee1x)
         output.append(ee1y)
         for i in ee1_angles:
-            output.append(i.in_degrees())
+            # output.append(i.in_degrees())
+            output.append(i.in_radians())
         for i in lengths:
             output.append(i)
         return output

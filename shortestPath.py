@@ -57,14 +57,20 @@ class astar():
         queue = PriorityQueue()
         self.sofar_cost = 0
         queue.put(Prioritize(0,self))
-        visited = {}
-        while queue:
+        visited = set()
+        weights = {}
+        count = 0
+        while not queue.empty():
             curItem = queue.get()   
             curNode = curItem.item
             curVertexId = curNode.state
-            visited[curVertexId] = curNode
+            weights[curVertexId] = curNode
+            visited.add(curVertexId)
             # print(curVertexId)
             # print(finish)
+            count += 1
+            # if(count == 6):
+            #     qq =1
             # print(self.difference(curVertexId, finish,spec))
             if (self.differenceTF(curVertexId, finish,spec)):
                 # traverse
@@ -74,11 +80,59 @@ class astar():
             if curVertex.checkConnections():
                 for i in curVertex.getConnections():
                     newCost = curNode.sofar_cost + self.actioncost
-                    # if i.getId() not in visited or (newCost < visited[i.getId()].sofar_cost):
+                    # if i.getId() not in visited or (newCost < weights[i.getId()].sofar_cost):
                     if i.getId() not in visited:
                         newNode = astar(state=i.getId(),parent=curNode,depth = curNode.depth+1,cost =newCost)
-                        visited[i.getId()] = newNode
-                        visited[i.getId()].sofar_cost = newCost
+                        weights[i.getId()] = newNode
+                        weights[i.getId()].sofar_cost = newCost
                         priority_cost = newCost + self.heuristic_func(i.getId(),finish,spec)
-                        queue.put(Prioritize(int(priority_cost),visited[i.getId()]))
+                        queue.put(Prioritize(int(priority_cost),weights[i.getId()]))
+                    elif newCost < weights[i.getId()].sofar_cost:
+                        # newNode = astar(state=i.getId(),parent=curNode,depth = curNode.depth+1,cost =newCost)
+                        # weights[i.getId()] = newNode
+                        weights[i.getId()].sofar_cost = newCost
+                        priority_cost = newCost + self.heuristic_func(i.getId(),finish,spec)
+                        queue.put(Prioritize(int(priority_cost),weights[i.getId()]))
+        return []
+
+    def astar_run_mutipleGraph(self,graph,finish, spec):
+        queue = PriorityQueue()
+        self.sofar_cost = 0
+        queue.put(Prioritize(0,self))
+        visited = set()
+        weights = {}
+        count = 0
+        while not queue.empty():
+            curItem = queue.get()   
+            curNode = curItem.item
+            curVertexId = curNode.state
+            weights[curVertexId] = curNode
+            visited.add(curVertexId)
+            # print(curVertexId)
+            # print(finish)
+            count += 1
+            # if(count == 6):
+            #     qq =1
+            # print(self.difference(curVertexId, finish,spec))
+            if (self.differenceTF(curVertexId, finish,spec)):
+                # traverse
+                return self.traverse(curNode)
+
+            curVertex = graph.getVertex(curVertexId)
+            if curVertex.checkConnections():
+                for i in curVertex.getConnections():
+                    newCost = curNode.sofar_cost + self.actioncost
+                    # if i.getId() not in visited or (newCost < weights[i.getId()].sofar_cost):
+                    if i.getId() not in visited:
+                        newNode = astar(state=i.getId(),parent=curNode,depth = curNode.depth+1,cost =newCost)
+                        weights[i.getId()] = newNode
+                        weights[i.getId()].sofar_cost = newCost
+                        priority_cost = newCost + self.heuristic_func(i.getId(),finish,spec)
+                        queue.put(Prioritize(int(priority_cost),weights[i.getId()]))
+                    elif newCost < weights[i.getId()].sofar_cost:
+                        # newNode = astar(state=i.getId(),parent=curNode,depth = curNode.depth+1,cost =newCost)
+                        # weights[i.getId()] = newNode
+                        weights[i.getId()].sofar_cost = newCost
+                        priority_cost = newCost + self.heuristic_func(i.getId(),finish,spec)
+                        queue.put(Prioritize(int(priority_cost),weights[i.getId()]))
         return []

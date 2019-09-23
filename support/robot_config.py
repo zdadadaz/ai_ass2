@@ -88,6 +88,8 @@ class RobotConfig:
             arr.append(2)
         return arr
     
+    def get_EndeePos(self):
+        return self.points[-1]
 
     def get_ee1(self):
         """
@@ -95,6 +97,8 @@ class RobotConfig:
         :return: (ee1x, ee1y)
         """
         return self.points[0]
+
+
 
     def get_ee2(self):
         """
