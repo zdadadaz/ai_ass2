@@ -6,7 +6,7 @@ from test_robot import test_robot
 from shortestPath import astar
 from support.robot_config import write_robot_config_list_to_file
 from visualiser import Visualiser 
-from interpolation import Interpolation
+# from interpolation import Interpolation
 from util import write_sampling_config
 import math
 import random
@@ -20,10 +20,6 @@ class PRM(EST):
         self.gDict = {}
         self.visitedCollide =set()
         gPoints =self.get_grapple_points()
-        initState = self.get_init_state();
-        initPos = initState.points[0]
-        goalState = self.get_goal_state();    
-        goalPos = goalState.points[0]
         # for i in range(self.num_grapple_points):
         self.gDict[gPoints[0]] = Graph()
             # if (initPos[0] == gPoints[i][0] and initPos[1] == gPoints[i][1]):
@@ -32,8 +28,7 @@ class PRM(EST):
             #     self.gDict[gPoints[i]].addVertex(str(goalState))
 
         
-    def run_PRM(self,outPath):
-        
+    def run_PRM(self,outPath):   
         numberSamples_global = self.Setting['numberSamples_global']
         numberSamples_local = self.Setting['numberSamples_local']
         numBridge = 50
@@ -70,7 +65,7 @@ class PRM(EST):
 
                 if not numberSamples_local == 0:
                     print("build local graph")
-                    self.PRM_expansionBuildGraph(graph,numberSamples_local,expand_tau,eexy,ee1flags[g])
+                    # self.PRM_expansionBuildGraph(graph,numberSamples_local,expand_tau,eexy,ee1flags[g])
                     self.connectVertex(graph,eexy,knearest,conn_tau)
 
             print("global collision check")
@@ -129,7 +124,8 @@ class PRM(EST):
                 if tester.self_collision_test(rob):
                     graph.addVertex(str(rob))
                     # points = rob.str2list()[:-1]
-                    points = rob.points
+                    # points = rob.points
+                    points = rob.get_position()
                     myarray = np.asarray(points)
                     r,c = myarray.shape
                     myarray = myarray.reshape(1,c*r)
@@ -146,7 +142,7 @@ class PRM(EST):
             init = self.get_init_state()
             graph.addVertex(str(init))
             # myarray = np.asarray(init.str2list()[:-1])
-            myarray = np.asarray(init.points)
+            myarray = np.asarray(init.get_position())
             r,c = myarray.shape
             myarray = myarray.reshape(1,c*r)
             output = np.vstack([output, myarray])
@@ -154,7 +150,7 @@ class PRM(EST):
             
             graph.addVertex(str(goal))
             # myarray = np.asarray(goal.str2list()[:-1])
-            myarray = np.asarray(goal.points)
+            myarray = np.asarray(goal.get_position())
             r,c = myarray.shape
             myarray = myarray.reshape(1,c*r)
             output = np.vstack([output, myarray])
@@ -172,9 +168,11 @@ class PRM(EST):
                     q = self.str2robotConfig(knNode)
                     if (sp < r-2):
                         if(tester.test_config_distance(m,q,self,tau)):
-                            graph.addEdge(curNode,knNode)
+                            if curNode[-1] == knNode[-1]:
+                                graph.addEdge(curNode,knNode)
                     else:
-                        graph.addEdge(curNode,knNode)
+                        if curNode[-1] == knNode[-1]:
+                            graph.addEdge(curNode,knNode)
         else: 
             r,c = output.shape
             tree = KDTree(output,leaf_size=2)
@@ -187,7 +185,8 @@ class PRM(EST):
                     knNode = graph.getVerticeByInt(ind[0][kn])
                     q = self.str2robotConfig(knNode)
                     if(tester.test_config_distance(m,q,self,tau)):
-                        graph.addEdge(curNode,knNode)
+                        if curNode[-1] == knNode[-1]:
+                            graph.addEdge(curNode,knNode)
                 
     def PRM_expansionBuildGraph(self,graph,numberOfsampling,tau,eexy,ee1Flag):
         # numberOfsampling = 100
@@ -245,9 +244,9 @@ class PRM(EST):
     def connectVertex(self,graph,gPoints,knearest,tau):
         # knearest = 10
         initState = self.get_init_state()
-        initPos = initState.points[0]
+        initPos = initState.get_HeadeePos()
         goalState = self.get_goal_state()
-        goalPos = goalState.points[0]
+        goalPos = goalState.get_HeadeePos()
         # gPoints =self.get_grapple_points()
         # for i in range(len(gPoints)):
         # i = 0
@@ -256,22 +255,22 @@ class PRM(EST):
         # find nearest vertex and connect with collision check
         tree = self.KDtreeVertex(graph,arr,knearest,tau)
         # attach init state on graph
-        if (initPos[0] == gPoints[0] and initPos[1] == gPoints[1]):
-            verInit = graph.getVertex(str(initState)) 
-            if not verInit.checkConnections():
-                myarray = np.asarray(initState.points)
-                r,c = myarray.shape
-                initArr = myarray.reshape(1,c*r)
-                self.addState2Graph(tree,graph,initArr,str(initState),2)
+        # if (initPos[0] == gPoints[0] and initPos[1] == gPoints[1]):
+        verInit = graph.getVertex(str(initState)) 
+        if not verInit.checkConnections():
+            myarray = np.asarray(initState.get_position())
+            r,c = myarray.shape
+            initArr = myarray.reshape(1,c*r)
+            self.addState2Graph(tree,graph,initArr,str(initState),2)
         # attach goal state on graph
-        if (goalPos[0] == gPoints[0] and goalPos[1] == gPoints[1]):
-            verGoal = graph.getVertex(str(goalState)) 
-            if not verGoal.checkConnections():
-                myarray = np.asarray(goalState.points)
-                r,c = myarray.shape
-                goalArr = myarray.reshape(1,c*r)
-                # initArr might be error, need array[[]]
-                self.addState2Graph(tree,graph,goalArr,str(goalState),2)
+        # if (goalPos[0] == gPoints[0] and goalPos[1] == gPoints[1]):
+        verGoal = graph.getVertex(str(goalState)) 
+        if not verGoal.checkConnections():
+            myarray = np.asarray(goalState.get_position())
+            r,c = myarray.shape
+            goalArr = myarray.reshape(1,c*r)
+            # initArr might be error, need array[[]]
+            self.addState2Graph(tree,graph,goalArr,str(goalState),2)
 
     def addState2Graph(self,tree,graph,arr,curNode,knearest):
         dist, ind = tree.query(arr, k=knearest) 
@@ -280,7 +279,8 @@ class PRM(EST):
                 knNode = graph.getVerticeByInt(ind[0][kn])
                 # aa = graph.getVerticeByInt(ind[0][0])
                 # q = self.str2robotConfig(str(knNode))
-                graph.addEdge(curNode,knNode)
+                if curNode[-1] == knNode[-1]:
+                    graph.addEdge(curNode,knNode)
 
     def KDtreeVertex(self,graph,arr,knearest,tau):
         tester = test_robot(self)
@@ -300,10 +300,11 @@ class PRM(EST):
                 conns = mVer.getConnectionsIds()
                 if ((knNode,curNode) not in visited and (curNode,knNode) not in visited):
                     if(knNode not in conns and tester.test_config_distance(m,q,self,tau)):
-                        graph.addEdge(curNode,knNode)
-                        graph.addEdge(knNode,curNode)
-                        visited.add((curNode,knNode))
-                        visited.add((knNode,curNode))
+                        if curNode[-1]==knNode[-1]:
+                            graph.addEdge(curNode,knNode)
+                            graph.addEdge(knNode,curNode)
+                            visited.add((curNode,knNode))
+                            visited.add((knNode,curNode))
         return tree
 
     def collision_check_one(self,robA,robB,numLayer):

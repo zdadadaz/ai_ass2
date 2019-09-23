@@ -106,7 +106,7 @@ class RobotConfig:
             return self.points
         else:
             arr = []
-            for i in self.points.reverse():
+            for i in reversed(self.points):
                 arr.append(i)
             return arr
         

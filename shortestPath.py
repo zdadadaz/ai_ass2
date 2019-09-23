@@ -44,14 +44,20 @@ class astar():
             return rob_conf_ee2(ee1x, ee1y, ee1_angles, lengths, ee2_grappled=True)
 
     def difference(self,strA,strB,spec):
-        robotA = self.str2robotConfigqq(strA)
-        robotB = self.str2robotConfigqq(strB)
-        return test_config_distance_out(robotA,robotB,spec)
-        
+        if strA[-1] != strB[-1]:
+            return 10000
+        else:
+            robotA = self.str2robotConfigqq(strA)
+            robotB = self.str2robotConfigqq(strB)
+            return test_config_distance_out(robotA,robotB,spec)
+            
     def differenceTF(self,strA,strB,spec):
-        robotA = self.str2robotConfigqq(strA)
-        robotB = self.str2robotConfigqq(strB)
-        return test_config_distance(robotA,robotB,spec)
+        if strA[-1] != strB[-1]:
+            return False
+        else:
+            robotA = self.str2robotConfigqq(strA)
+            robotB = self.str2robotConfigqq(strB)
+            return test_config_distance(robotA,robotB,spec)
 
     def astar_run(self,graph,finish, spec):
         queue = PriorityQueue()

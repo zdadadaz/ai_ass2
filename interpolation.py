@@ -34,42 +34,43 @@ class Interpolation:
     # rob1: list with px,py,ang,length
     def interpolation2robOne(self,rob1,rob2, stepslength):
         # stepslength = 1e-3
-        if (rob1[0]-rob2[0] != 0 and rob1[1]-rob2[1] != 0):
-            return rob1
+        # if (rob1[0]-rob2[0] != 0 and rob1[1]-rob2[1] != 0):
+        #     return rob1
         rob1 = np.asarray(rob1)
         rob2 = np.asarray(rob2)
         
         numSeg = int((len(rob1)-2)/2)
 
-        diff = abs(rob1[2:] - rob2[2:])
+        diff = abs(rob1 - rob2)
         step = (np.floor(diff/stepslength))
         step = step.astype(int)
         maxStep = max(step)
         stepslengthlist = diff/maxStep
-        
         for i in range(len(stepslengthlist)):
             stepslength = stepslengthlist[i]
-            stepslength = (-1)*stepslength if rob1[i+2] > rob2[i+2] else stepslength
+            stepslength = (-1)*stepslength if rob1[i] > rob2[i] else stepslength
             arr = []
             if (step[i] ==0):
                 for j in range(maxStep):
-                    if i<numSeg:
-                        tmpAng = Angle(radians=rob1[i+2])
+                    if i > 1 and i<2+numSeg:
+                        tmpAng = Angle(radians=rob1[i])
                         arr.append(tmpAng.in_degrees())
                     else:
-                        arr.append(rob1[i+2])
+                        arr.append(rob1[i])
             else:
                 for j in range(maxStep):
-                    if i<numSeg:
-                        tmpAng = Angle(radians=(rob1[i+2]+ j * stepslength))
+                    if i>1 and i<2+numSeg:
+                        tmpAng = Angle(radians=(rob1[i]+ j * stepslength))
                         arr.append(tmpAng.in_degrees())
                     else:
-                        arr.append(rob1[i+2] + j * stepslength)
+                        arr.append(rob1[i] + j * stepslength)
             if i == 0:
                 whole = np.asarray(arr)
             else:
                 whole = np.vstack([whole, arr])
-        whole = self.interpolation2robAddxy(rob1,whole)
+        r,c = whole.shape
+        whole = np.transpose(whole)
+        # whole = self.interpolation2robAddxy(rob1,whole)
         return whole
 
     def interpolation2robAddxy(self,rob1,myarray):

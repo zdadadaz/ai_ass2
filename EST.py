@@ -113,8 +113,8 @@ class EST(ProblemSpec):
         points = self.grapple_points
         # 3g2_m1,3g2_m2
         if self.num_grapple_points == 2:
-            Setting['np-rd']=5000
-            Setting['random']=550
+            Setting['np-rd']=30
+            Setting['random']=1000
             Setting['ee1Flag']=[True,False]
             Setting['numberSamples_global']=1000
             Setting['numberSamples_local']=500
@@ -200,7 +200,10 @@ class EST(ProblemSpec):
                 tmp = self.run_checking_sampling_bridge(rob,eexyto,ee1flags)
                 if len(tmp) != 0:
                     # print(tmp[0])
-                    graph.addVertex(str(tmp[0]))
+                    # print(tmp[0].get_position())
+                    # print(tmp[1].get_position())
+                    graph.addEdge(str(tmp[0]),str(tmp[1]))
+                    # graph.addVertex(str(tmp[0]))
                     count+=1
                 if count > numberSamples:
                     break
@@ -211,7 +214,7 @@ class EST(ProblemSpec):
         tolerate_error= 1e-5
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
-        robPos = rob.points
+        robPos = rob.get_position()
         headPos = robPos[0]
         endPos = rob.get_EndeePos()
     
@@ -260,7 +263,7 @@ class EST(ProblemSpec):
         tolerate_error= 1e-5
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
-        robPos = rob.points
+        robPos = rob.get_position()
         headPos = robPos[0]
         endPos = rob.get_EndeePos()
     
@@ -270,15 +273,15 @@ class EST(ProblemSpec):
         arr = []
         if ee1flag:
             if abs(endPos[0] - grapple2[0])< tolerate_error and abs(endPos[1] - grapple2[1])< tolerate_error:
-                # robInverse = rob_conf_ee2(grapple2[0],grapple2[1],rob.ee2_angles,rob.lengths,ee2_grappled=True)
+                robInverse = rob_conf_ee2(grapple2[0],grapple2[1],rob.ee2_angles,rob.lengths,ee2_grappled=True)
                 arr.append(rob)
-                # arr.append(robInverse)
+                arr.append(robInverse)
                 return True,arr
         else:
             if abs(endPos[0] - grapple2[0])< tolerate_error and abs(endPos[1] - grapple2[1])< tolerate_error:
-                # robInverse = rob_conf_ee1(grapple2[0],grapple2[1],rob.ee1_angles,rob.lengths,ee1_grappled=True)
+                robInverse = rob_conf_ee1(grapple2[0],grapple2[1],rob.ee1_angles,rob.lengths,ee1_grappled=True)
                 arr.append(rob)
-                # arr.append(robInverse)
+                arr.append(robInverse)
                 return True,arr
         return False,arr
 
