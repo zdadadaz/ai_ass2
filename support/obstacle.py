@@ -27,5 +27,11 @@ class Obstacle:
         else:
             return False
 
+    def check_in_obstacle_range(self, x,y):
+        if x >= (self.x1-0.05) and x <= (self.x2+0.05) and y >= (self.y1-0.05) and y <= (self.y2+0.05):
+            return True
+        else:
+            return False
+
     def diff_from_obstacle(self, x,y):
         return abs(x - self.x1) + abs(x - self.x2) + abs(y - self.y1) + abs(y - self.y2) 

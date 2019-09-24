@@ -10,6 +10,8 @@ from visualiser import Visualiser
 from util import write_sampling_config
 import math
 import random
+from support.robot_config import make_robot_config_with_arr 
+
 
 class PRM(EST):
     def __init__(self, input_file):
@@ -33,9 +35,9 @@ class PRM(EST):
         numberSamples_local = self.Setting['numberSamples_local']
         numBridge = 50
         knearest = 20
-        expand_tau = 0.3
-        conn_tau = 0.3
-        global_tau =0.3
+        expand_tau = 0.4
+        conn_tau = 0.4
+        global_tau =0.4
         clayer =2
 
         change = self.Setting['numChange']
@@ -65,7 +67,7 @@ class PRM(EST):
 
                 if not numberSamples_local == 0:
                     print("build local graph")
-                    # self.PRM_expansionBuildGraph(graph,numberSamples_local,expand_tau,eexy,ee1flags[g])
+                    self.PRM_expansionBuildGraph(graph,numberSamples_local,expand_tau,eexy,ee1flags[g])
                     self.connectVertex(graph,eexy,knearest,conn_tau)
 
             print("global collision check")
@@ -102,8 +104,9 @@ class PRM(EST):
         for p in pathTot:
             for i in range(len(p)):
                 arr.append(p[i][0][:-3])
+        
         write_robot_config_list_to_file(outPath,arr) 
-        return True
+        return True,pathTot[0]
 
     
     def buildGraph(self,graph,numberSamples,knearest,tau,addState,eexy,ee1Flag):
@@ -114,8 +117,10 @@ class PRM(EST):
         count =0
         loop_count = 0
         
+        diffAng = self.checkhv_ee(eexy)
+
         while count<numberSamples:
-            samples = self.sampling_eexy(eexy,numberSamples,ee1Flag)
+            samples = self.sampling_eexy(eexy,numberSamples,ee1Flag,diffAng)
             loop_count += 1
             addCount = 0
             for sp in range(numberSamples_tmp):

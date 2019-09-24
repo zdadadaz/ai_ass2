@@ -1,9 +1,10 @@
 import numpy as np
 from test_robot import test_robot
 from support.angle import Angle
-# from PRM import PRM
+# from support.robot_config import RobotConfigs
+# from support.robot_config import make_robot_config_with_arr 
+
 import math
-from util import write_sampling_config
 
 class Interpolation:
     
@@ -22,7 +23,7 @@ class Interpolation:
                 wholeArray = arr
             else:
                 wholeArray = np.vstack([wholeArray, arr])
-        
+            
         numSeg = int((len(robot2)-2)/2)
         for j in range(numSeg):
             tmpAng = Angle(radians=robot2[j+2])
@@ -94,6 +95,8 @@ class Interpolation:
             output.append(i.in_radians())
         for i in lengths:
             output.append(i)
+        
+        # output.append(int(ee1_grappled))
         return output
 
 

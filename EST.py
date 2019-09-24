@@ -46,12 +46,12 @@ class EST(ProblemSpec):
         self.collision_check(A  ,mid, n-1,checkList)
         self.collision_check(mid,B, n-1,checkList)
     
-    def sampling_eexy(self,eexy,numSampling,ee1Flag):
+    def sampling_eexy(self,eexy,numSampling,ee1Flag,diffAng):
         # np.random.seed(249)
         minMax = self.get_min_max_len()
         numSeg = self.get_num_segment()
 
-        diffAng = self.Setting["angDiff"]
+        # diffAng = self.Setting["angDiff"]
 
         if ee1Flag:
             grapples_tmp = np.zeros((numSampling,1))
@@ -80,6 +80,25 @@ class EST(ProblemSpec):
         output = np.append(output, lengths, axis=1)
         output = np.append(output,grapples_tmp,axis=1)
         return output
+    def checkhv_ee(self,eexy):
+        # 0->up, 1 -> down, 2-> left, 3-> right
+        ob = self.obstacles
+        for i in ob:
+            if i.check_in_obstacle_range(eexy[0],eexy[1]):
+                # up
+                if abs(eexy[1] - i.y2)<=0.05:
+                    return [[180, 0],[180, 0]]
+                # down
+                elif abs(eexy[1] - i.y1)<=0.05:
+                    return [[-180, 0],[-180, 0]]
+                # left
+                elif abs(eexy[2] == i.x1)<=0.05:
+                    return [[90, -90],[-90, 90]]
+                # right
+                elif abs(eexy[2] == i.x2)<=0.05:
+                    return [[90, 0],[-90, 0]]
+                break
+
 
     def sampling(self, numSampling):
         # np.random.seed(30)
@@ -91,6 +110,7 @@ class EST(ProblemSpec):
         grapples = []
         angles = np.zeros((numSampling,numSeg))
         lengths = np.zeros((numSampling,numSeg))
+        
         for i in range(numSeg):
             if i == 0:
                 # angles[:,i] = np.random.rand(1,numSampling)*360 - 180
@@ -113,15 +133,39 @@ class EST(ProblemSpec):
         points = self.grapple_points
         # 3g2_m1,3g2_m2
         if self.num_grapple_points == 2:
-            Setting['np-rd']=30
-            Setting['random']=1000
+            Setting['np-rd']=1249901
+            Setting['random']=22938921
             Setting['ee1Flag']=[True,False]
             Setting['numberSamples_global']=1000
             Setting['numberSamples_local']=500
             Setting['numChange']=1
             Setting["angDiff"] = [[180, 0],[180, 0]]
-            Setting['angConstraint'] = [[0, 90],[0,-90],[0,-90]]
+            Setting['angConstraint'] = [[0, 100],[0,-90],[0,-90]]
             return Setting
+        # 4g4_m2, 4g4_m3
+        elif self.num_grapple_points == 4 and points[0][0]==0.245 and points[0][1]==0.5:
+            Setting['np-rd']=1249901
+            Setting['random']=22938921
+            Setting['ee1Flag']=[True,False,False,True]
+            Setting['numberSamples_global']=1000
+            Setting['numberSamples_local']=500
+            Setting['numChange']=2
+            Setting["angDiff"] = [[90, -90],[-90, 90]]
+            Setting['angConstraint'] = [[90, 180],[0,-120],[-90,10],[45,90]]
+            return Setting
+        
+         # 4g3_m2, 4g3_m1
+        elif self.num_grapple_points == 3 and self.num_segments == 4:
+            Setting['np-rd']=1249901
+            Setting['random']=22938921
+            Setting['ee1Flag']=[True,False,True]
+            Setting['numberSamples_global']=1000
+            Setting['numberSamples_local']=500
+            Setting['numChange']=2
+            Setting["angDiff"] = [[90, -90],[-90, 90]]
+            Setting['angConstraint'] = [[90, 180],[0,-120],[-90,10],[45,90]]
+            return Setting
+
         # 3g1_m0,3g1_m1,3g1_m2
         elif self.num_grapple_points == 1 and self.num_segments == 3:
             Setting['np-rd']=5000
