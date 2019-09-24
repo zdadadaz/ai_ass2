@@ -92,10 +92,10 @@ class EST(ProblemSpec):
                 elif abs(eexy[1] - i.y1)<=0.05:
                     return [[-180, 0],[-180, 0]]
                 # left
-                elif abs(eexy[2] == i.x1)<=0.05:
+                elif abs(eexy[0] - i.x1)<=0.05:
                     return [[90, -90],[-90, 90]]
                 # right
-                elif abs(eexy[2] == i.x2)<=0.05:
+                elif abs(eexy[0] - i.x2)<=0.05:
                     return [[90, 0],[-90, 0]]
                 break
 
@@ -139,8 +139,9 @@ class EST(ProblemSpec):
             Setting['numberSamples_global']=1000
             Setting['numberSamples_local']=500
             Setting['numChange']=1
-            Setting["angDiff"] = [[180, 0],[180, 0]]
             Setting['angConstraint'] = [[0, 100],[0,-90],[0,-90]]
+            Setting['layer'] = 2
+            Setting['tau'] = 0.4
             return Setting
         # 4g4_m2, 4g4_m3
         elif self.num_grapple_points == 4 and points[0][0]==0.245 and points[0][1]==0.5:
@@ -150,32 +151,74 @@ class EST(ProblemSpec):
             Setting['numberSamples_global']=1000
             Setting['numberSamples_local']=500
             Setting['numChange']=2
-            Setting["angDiff"] = [[90, -90],[-90, 90]]
             Setting['angConstraint'] = [[90, 180],[0,-120],[-90,10],[45,90]]
+            Setting['layer'] = 2
+            Setting['tau'] = 0.4
             return Setting
         
-         # 4g3_m2, 4g3_m1
-        elif self.num_grapple_points == 3 and self.num_segments == 4:
+         # 3g3_m1
+        elif self.num_grapple_points == 3 and self.num_segments == 3:
             Setting['np-rd']=1249901
             Setting['random']=22938921
             Setting['ee1Flag']=[True,False,True]
-            Setting['numberSamples_global']=1000
-            Setting['numberSamples_local']=500
+            Setting['numberSamples_global']=800
+            Setting['numberSamples_local']=200
             Setting['numChange']=2
-            Setting["angDiff"] = [[90, -90],[-90, 90]]
-            Setting['angConstraint'] = [[90, 180],[0,-120],[-90,10],[45,90]]
+            Setting['angConstraint'] = [[0, 90],[0,180],[0,180]]
+            Setting['layer'] = 3
+            Setting['tau'] = 0.4
+            return Setting
+        
+        # 4g3_m2
+        elif self.num_grapple_points == 3 and self.num_segments == 4 :
+            Setting['np-rd']=201840
+            Setting['random']=550
+            Setting['ee1Flag']=[True,False,True]
+            Setting['numberSamples_global']=800
+            Setting['numberSamples_local']=200
+            Setting['numChange']=2
+            Setting['angConstraint'] = [[0, 90],[-90,90],[0,180],[45,90]]
+            Setting['layer'] = 2
+            Setting['tau'] = 0.4
+            return Setting
+        
+        # 5g3_m1,m2,m3
+        elif self.num_grapple_points == 3 and self.num_segments == 5 :
+            Setting['np-rd']=201840
+            Setting['random']=550
+            Setting['ee1Flag']=[True,False,True]
+            Setting['numberSamples_global']=800
+            Setting['numberSamples_local']=200
+            Setting['numChange']=2
+            Setting['angConstraint'] = [[0, 90],[-45,45],[0,90],[0,180],[0,180]]
+            Setting['layer'] = 2
+            Setting['tau'] = 0.4
             return Setting
 
-        # 3g1_m0,3g1_m1,3g1_m2
-        elif self.num_grapple_points == 1 and self.num_segments == 3:
-            Setting['np-rd']=5000
+        # 3g1_m0,
+        elif self.num_grapple_points == 1 and self.num_segments == 3 and self.num_obstacles == 1:
+            Setting['np-rd']=30
             Setting['random']=550
             Setting['ee1Flag']=[True]
             Setting['numberSamples_global']=1000
-            Setting['numberSamples_local']=0
+            Setting['numberSamples_local']=500
             Setting['numChange']=0
-            Setting["angDiff"] = [[180, 0],[180, 0]]
             Setting['angConstraint'] =[]
+            Setting['layer'] = 2
+            Setting['tau'] = 0.4
+            return Setting
+
+        # 3g1_m1,3g1_m2
+        elif self.num_grapple_points == 1 and self.num_segments == 3:
+            Setting['np-rd']=201840
+            Setting['random']=550
+            Setting['ee1Flag']=[True]
+            Setting['numberSamples_global']=1000
+            Setting['numberSamples_local']=1
+            Setting['numChange']=0
+            Setting['angConstraint'] =[]
+            Setting['layer'] = 2
+            Setting['tau'] = 0.4
             return Setting
         # 4g1_m1
         elif self.num_grapple_points == 1 and self.num_segments == 4 and points[0][0] == 0.5 and points[0][1] == 0.3:
@@ -185,20 +228,23 @@ class EST(ProblemSpec):
             Setting['numberSamples_global']=1000
             Setting['numberSamples_local']=500
             Setting['numChange']=0
-            Setting["angDiff"] = [[180, 0],[180, 0]]
             Setting['angConstraint'] =[]
+            Setting['layer'] = 2
+            Setting['tau'] = 0.4
             return Setting
         # 4g1_m2, need train
         elif self.num_grapple_points == 1 and self.num_segments == 4 and points[0][0] != 0.5 and points[0][1] != 0.3:
-            Setting['np-rd']=5501121
+            Setting['np-rd']=987124
             Setting['random']=55011
             Setting['ee1Flag']=[True]
             Setting['numberSamples_global']=1000
-            Setting['numberSamples_local']=500
+            Setting['numberSamples_local']=100
             Setting['numChange']=0
-            Setting["angDiff"] = [[90, -90],[-90, 90]]
             Setting['angConstraint'] =[]
+            Setting['layer'] = 2
+            Setting['tau'] = 0.4
             return Setting
+
 
 
     def sampling_ang_constrain(self,numSampling,angConstraint,eexy,ee1Flag):
@@ -276,6 +322,7 @@ class EST(ProblemSpec):
             difflen = math.sqrt(xlen * xlen + ylen * ylen)
             if (difflen >= minMax[0][-1] and difflen <= minMax[1][-1]):
                 newAng = Angle.atan2(ylen,xlen)
+                newAng1 = Angle.atan2(-ylen,-xlen)
                 if ee1flag:
                     robArr = rob.str2list()
                     angSum = 0
@@ -295,9 +342,11 @@ class EST(ProblemSpec):
                     angSum=0
                     for a in range(numSeg-1):
                         angSum += robArr[2+ a]
-                    robArr[2+numSeg-1] = newAng.in_degrees() -angSum
-                    robArr[2+numSeg*2 -1] = difflen
+                    robArr[2+numSeg -1] = newAng.in_degrees()-angSum 
+                    robArr[2+numSeg] = difflen
                     robNew= make_robot_config_with_arr(robArr[0],robArr[1],robArr[2:(2+numSeg)],robArr[(2+numSeg):(2+numSeg*2)],robArr[-1]) 
+                    robNew1= make_robot_config_with_arr(robArr[0],robArr[1],robArr[2:(2+numSeg)],robArr[(2+numSeg):(2+numSeg*2)],robArr[-1]) 
+                
                     flagNew, arrNew = self.check_sampling_bridge(robNew,grapple2,ee1flag)
                     if flagNew:
                         return arrNew
@@ -401,10 +450,9 @@ class EST(ProblemSpec):
         if int(ee1_grappled) == 1:
             return rob_conf_ee1(ee1x, ee1y, ee1_angles, lengths, ee1_grappled=True)
         else: 
-            return rob_conf_ee2(ee1x, ee1y, ee1_angles, lengths, ee2_grappled=True)
+            return rob_conf_ee2(ee1x, ee1y, ee1_angles, lengths, ee2_grappled=True)    
+    
 
-    
-    
     def run_EST(self, outPath):
         init = self.get_init_state();
         goal = self.get_goal_state();
@@ -493,16 +541,34 @@ class EST(ProblemSpec):
             q_test_conf = self.assign_config(q_test,i)
             # find q_test in the distance of D from q
             if(tester.self_collision_test(q_test_conf)) and tester.test_config_distance_tau(m,q_test_conf,self,tau):
-                T.addEdge(str(m),str(q_test_conf))
-                return q_test_conf
+                curNode = str(m)
+                knNode = str(q_test_conf)
+                if curNode[-1] == knNode[-1]:
+                    if int(curNode[-1]) == 1:
+                        if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                            T.addEdge(str(m),str(q_test_conf))
+                            return q_test_conf
+                    else:
+                        T.addEdge(str(m),str(q_test_conf))
+                        return q_test_conf
             else: # find middle point
                 tmpA = np.asarray(q.str2list())
                 tmpB = np.asarray(q_test_conf.str2list())
                 tmpC = (tmpA+tmpB)/2
                 midRobot = make_robot_config_with_arr(tmpA[0],tmpA[1],tmpC[2:(2+self.num_segments)],tmpC[2+self.num_segments:(2+2*self.num_segments)],tmpA[-1])
                 if(tester.self_collision_test(midRobot)) and tester.test_config_distance_tau(m,midRobot,self,tau):
-                    T.addEdge(str(m),str(midRobot))
-                    return midRobot
+                    curNode = str(m)
+                    knNode = str(midRobot)
+                    if curNode[-1] == knNode[-1]:
+                        if int(curNode[-1]) == 1:
+                            if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                                T.addEdge(str(m),str(midRobot))
+                                return midRobot
+                        else:
+                            T.addEdge(str(m),str(midRobot))
+                            return midRobot
+                    # T.addEdge(str(m),str(midRobot))
+                    # return midRobot
         return None
 
 

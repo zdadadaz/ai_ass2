@@ -35,11 +35,12 @@ class PRM(EST):
         numberSamples_local = self.Setting['numberSamples_local']
         numBridge = 50
         knearest = 20
-        expand_tau = 0.4
-        conn_tau = 0.4
-        global_tau =0.4
-        clayer =2
-
+        expand_tau = self.Setting['tau']
+        conn_tau = self.Setting['tau']
+        global_tau =self.Setting['tau']
+        clayer =self.Setting['layer']
+ 
+            
         change = self.Setting['numChange']
         count_change = 0
         pathTot = []
@@ -101,12 +102,19 @@ class PRM(EST):
         # print collision check point in output
         # self.add_collision2output(self.gPrm,self.collision_checkList,arr,path)
         # normal printout
+        out = []
         for p in pathTot:
             for i in range(len(p)):
-                arr.append(p[i][0][:-3])
-        
+                if int(p[i][0][-1]) == 2:
+                    rob = self.str2robotConfig(p[i][0])
+                    out.append(str(rob))
+                    arr.append(rob.strEE1out()[:-3])
+                else:
+                    out.append(p[i][0])
+                    arr.append(p[i][0][:-3])
+                    
         write_robot_config_list_to_file(outPath,arr) 
-        return True,pathTot[0]
+        return True,out
 
     
     def buildGraph(self,graph,numberSamples,knearest,tau,addState,eexy,ee1Flag):
@@ -174,25 +182,38 @@ class PRM(EST):
                     if (sp < r-2):
                         if(tester.test_config_distance(m,q,self,tau)):
                             if curNode[-1] == knNode[-1]:
-                                graph.addEdge(curNode,knNode)
+                                if int(curNode[-1]) == 1:
+                                    if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:                        
+                                        graph.addEdge(curNode,knNode)                                
+                                else:
+                                    graph.addEdge(curNode,knNode)
                     else:
                         if curNode[-1] == knNode[-1]:
-                            graph.addEdge(curNode,knNode)
-        else: 
-            r,c = output.shape
-            tree = KDTree(output,leaf_size=2)
-            # print(output)
-            for sp in range(r):
-                dist, ind = tree.query(output[sp:sp+1], k=knearest) 
-                curNode = graph.getVerticeByInt(sp)
-                m = self.str2robotConfig(curNode)
-                for kn in range(1,knearest):
-                    knNode = graph.getVerticeByInt(ind[0][kn])
-                    q = self.str2robotConfig(knNode)
-                    if(tester.test_config_distance(m,q,self,tau)):
-                        if curNode[-1] == knNode[-1]:
-                            graph.addEdge(curNode,knNode)
-                
+                            if int(curNode[-1]) == 1:
+                                if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                                    graph.addEdge(curNode,knNode)
+                            else:
+                                graph.addEdge(curNode,knNode)
+
+        # else: 
+        #     r,c = output.shape
+        #     tree = KDTree(output,leaf_size=2)
+        #     # print(output)
+        #     for sp in range(r):
+        #         dist, ind = tree.query(output[sp:sp+1], k=knearest) 
+        #         curNode = graph.getVerticeByInt(sp)
+        #         m = self.str2robotConfig(curNode)
+        #         for kn in range(1,knearest):
+        #             knNode = graph.getVerticeByInt(ind[0][kn])
+        #             q = self.str2robotConfig(knNode)
+        #             if(tester.test_config_distance(m,q,self,tau)):
+        #                 if curNode[-1] == knNode[-1]:
+        #                     if int(curNode[-1]) == 1:
+        #                         if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+        #                             graph.addEdge(curNode,knNode)
+        #                     else:
+        #                         graph.addEdge(curNode,knNode)
+
     def PRM_expansionBuildGraph(self,graph,numberOfsampling,tau,eexy,ee1Flag):
         # numberOfsampling = 100
         success_limit = 10
@@ -230,11 +251,21 @@ class PRM(EST):
                 # f = open("tmp_output.txt", "a")
                 # f.write(str(q)[:-3] + '\n')
                 # f.close()
-                count_node+=1
-                T.addEdge(str(m),str(q))
-                successCount += 1
-                prevRobot = q
-                
+                curNode = str(m)
+                knNode = str(q)
+                if curNode[-1] == knNode[-1]:
+                    if int(curNode[-1]) == 1:
+                        if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                            count_node+=1
+                            T.addEdge(str(m),str(q))
+                            successCount += 1
+                            prevRobot = q
+                    else:
+                        count_node+=1
+                        T.addEdge(str(m),str(q))
+                        successCount += 1
+                        prevRobot = q
+ 
             else:  # obstacle sampling
                 successCount = 0
                 output = self.obstacle_sampling(T,m,q,D,k,tester,tau)
@@ -252,15 +283,10 @@ class PRM(EST):
         initPos = initState.get_HeadeePos()
         goalState = self.get_goal_state()
         goalPos = goalState.get_HeadeePos()
-        # gPoints =self.get_grapple_points()
-        # for i in range(len(gPoints)):
-        # i = 0
-        # graph = self.gDict[gPoints[i]]
         arr = np.asarray(graph.getAllkeylist())
         # find nearest vertex and connect with collision check
         tree = self.KDtreeVertex(graph,arr,knearest,tau)
         # attach init state on graph
-        # if (initPos[0] == gPoints[0] and initPos[1] == gPoints[1]):
         verInit = graph.getVertex(str(initState)) 
         if not verInit.checkConnections():
             myarray = np.asarray(initState.get_position())
@@ -268,24 +294,35 @@ class PRM(EST):
             initArr = myarray.reshape(1,c*r)
             self.addState2Graph(tree,graph,initArr,str(initState),2)
         # attach goal state on graph
-        # if (goalPos[0] == gPoints[0] and goalPos[1] == gPoints[1]):
         verGoal = graph.getVertex(str(goalState)) 
         if not verGoal.checkConnections():
             myarray = np.asarray(goalState.get_position())
             r,c = myarray.shape
             goalArr = myarray.reshape(1,c*r)
             # initArr might be error, need array[[]]
-            self.addState2Graph(tree,graph,goalArr,str(goalState),2)
+            self.addState2Graph(tree,graph,goalArr,str(goalState),20)
 
     def addState2Graph(self,tree,graph,arr,curNode,knearest):
+        arr[0][0] = arr[0][0]*10
+        arr[0][1] = arr[0][1]*10
         dist, ind = tree.query(arr, k=knearest) 
         # m = self.str2robotConfig(str(curNode))
         for kn in range(0,knearest):
                 knNode = graph.getVerticeByInt(ind[0][kn])
                 # aa = graph.getVerticeByInt(ind[0][0])
                 # q = self.str2robotConfig(str(knNode))
+                # if curNode[0] == knNode[0] and curNode[1] == knNode[1]:
+                # if curNode == "0.5 0.1; 8.27754461 14.87806786 139.17317948; 0.1753264 0.1 0.10378391; 1" or knNode == "0.5 0.1; 8.27754461 14.87806786 139.17317948; 0.1753264 0.1 0.10378391":
+                #     qq=1
                 if curNode[-1] == knNode[-1]:
-                    graph.addEdge(curNode,knNode)
+                    if int(curNode[-1]) == 1:
+                        if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                            graph.addEdge(curNode,knNode)
+                            break
+                    else:
+                        graph.addEdge(curNode,knNode)
+                        break
+
 
     def KDtreeVertex(self,graph,arr,knearest,tau):
         tester = test_robot(self)
@@ -305,11 +342,20 @@ class PRM(EST):
                 conns = mVer.getConnectionsIds()
                 if ((knNode,curNode) not in visited and (curNode,knNode) not in visited):
                     if(knNode not in conns and tester.test_config_distance(m,q,self,tau)):
+                        # if knNode == "0.5 0.1; 8.27754461 14.87806786 139.17317948; 0.1753264 0.1 0.10378391; 1" or knNode == "0.5 0.9; -4.82905941 12.32042486 127.10152851; 0.2 0.1 0.12652526; 1":
+                        #     qq=1
                         if curNode[-1]==knNode[-1]:
-                            graph.addEdge(curNode,knNode)
-                            graph.addEdge(knNode,curNode)
-                            visited.add((curNode,knNode))
-                            visited.add((knNode,curNode))
+                            if int(curNode[-1])==1:
+                                if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                                    graph.addEdge(curNode,knNode)
+                                    graph.addEdge(knNode,curNode)
+                                    visited.add((curNode,knNode))
+                                    visited.add((knNode,curNode))
+                            else:
+                                graph.addEdge(curNode,knNode)
+                                graph.addEdge(knNode,curNode)
+                                visited.add((curNode,knNode))
+                                visited.add((knNode,curNode))
         return tree
 
     def collision_check_one(self,robA,robB,numLayer):

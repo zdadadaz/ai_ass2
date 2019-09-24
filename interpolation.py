@@ -32,6 +32,23 @@ class Interpolation:
         wholeArray = np.vstack([wholeArray, np.asarray(robot2)])
         return wholeArray
 
+    def run_interpolation_modify(self):
+        robots = []
+        stepslength = 1e-3
+        
+        for i in range(len(self.allv)-1):
+            if (self.allv[i+1][-1] == str(1)):
+                robot1 = self.Coefstr2arr(self.allv[i])
+                robot2 = self.Coefstr2arr(self.allv[i+1])
+                arr = self.interpolation2robOne(robot1,robot2,stepslength)
+                if i == 0:
+                    wholeArray = arr
+                else:
+                    wholeArray = np.vstack([wholeArray, arr])
+            # else:
+                
+                
+
     # rob1: list with px,py,ang,length
     def interpolation2robOne(self,rob1,rob2, stepslength):
         # stepslength = 1e-3
@@ -62,9 +79,11 @@ class Interpolation:
                 for j in range(maxStep):
                     if i>1 and i<2+numSeg:
                         tmpAng = Angle(radians=(rob1[i]+ j * stepslength))
-                        arr.append(tmpAng.in_degrees())
+                        ang = round(tmpAng.in_degrees(), 8)
+                        arr.append(ang)
                     else:
-                        arr.append(rob1[i] + j * stepslength)
+                        tmp = round(rob1[i] + j * stepslength, 8)
+                        arr.append(tmp)
             if i == 0:
                 whole = np.asarray(arr)
             else:

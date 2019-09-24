@@ -55,13 +55,26 @@ class RobotConfig:
         else:
             raise Exception("Could not create RobotConfig - Insufficient information given")
 
-    def __str__(self):
-        """
-        Output string representation of RobotConfig. Use this functionality by calling str() on any RobotConfig object.
+    # def __str__(self):
+    #     """
+    #     Output string representation of RobotConfig. Use this functionality by calling str() on any RobotConfig object.
 
-        Note: Angles are printed as degrees (but are internally stored as radians)
-        :return: "ee1x ee2x; ee1_angle_1 ee1_angle_2 ... ee1_angle_n; length_1 length_2 ... length_n"
-        """
+    #     Note: Angles are printed as degrees (but are internally stored as radians)
+    #     :return: "ee1x ee2x; ee1_angle_1 ee1_angle_2 ... ee1_angle_n; length_1 length_2 ... length_n"
+    #     """
+    #     # add ee1 position
+    #     s = str(round(self.points[0][0], 8)) + ' ' + str(round(self.points[0][1], 8)) + '; '
+    #     # add angles from ee1
+    #     s += ' '.join([str(round(a.in_degrees(), 8)) for a in self.ee1_angles]) + '; '
+    #     # add lengths
+    #     s += ' '.join([str(round(l, 8)) for l in self.lengths]) + '; '
+    #     if self.ee1_grappled:
+    #         s += str(1)
+    #     else:
+    #         s += str(2)
+    #     return s
+    
+    def strEE1out(self):
         # add ee1 position
         s = str(round(self.points[0][0], 8)) + ' ' + str(round(self.points[0][1], 8)) + '; '
         # add angles from ee1
@@ -73,68 +86,69 @@ class RobotConfig:
         else:
             s += str(2)
         return s
-    
 
-    # def __str__(self):
-    #     """
-    #     Output string representation of RobotConfig. Use this functionality by calling str() on any RobotConfig object.
 
-    #     Note: Angles are printed as degrees (but are internally stored as radians)
-    #     :return: "ee1x ee2x; ee1_angle_1 ee1_angle_2 ... ee1_angle_n; length_1 length_2 ... length_n"
-    #     """
-    #     if self.ee1_grappled == True or (self.ee1_grappled == False and self.ee2_grappled == False):
-    #         # add ee1 position
-    #         s = str(round(self.points[0][0], 8)) + ' ' + str(round(self.points[0][1], 8)) + '; '
-    #         # add angles from ee1
-    #         s += ' '.join([str(round(a.in_degrees(), 8)) for a in self.ee1_angles]) + '; '
-    #         # add lengths
-    #         s += ' '.join([str(round(l, 8)) for l in self.lengths]) + '; '
-    #         if self.ee1_grappled:
-    #             s += str(1)
-    #         else:
-    #             s += str(2)
-    #         return s
-    #     else:
-    #         # add ee2 position
-    #         s = str(round(self.points[-1][0], 8)) + ' ' + str(round(self.points[-1][1], 8)) + '; '
-    #         # add angles from ee1
-    #         s += ' '.join([str(round(a.in_degrees(), 8)) for a in self.ee2_angles]) + '; '
-    #         # add lengths
-    #         s += ' '.join([str(round(l, 8)) for l in self.lengths]) + '; '
-    #         if self.ee1_grappled:
-    #             s += str(1)
-    #         else:
-    #             s += str(2)
-    #         return s
+    def __str__(self):
+        """
+        Output string representation of RobotConfig. Use this functionality by calling str() on any RobotConfig object.
+
+        Note: Angles are printed as degrees (but are internally stored as radians)
+        :return: "ee1x ee2x; ee1_angle_1 ee1_angle_2 ... ee1_angle_n; length_1 length_2 ... length_n"
+        """
+        if self.ee1_grappled == True or (self.ee1_grappled == False and self.ee2_grappled == False):
+            # add ee1 position
+            s = str(round(self.points[0][0], 8)) + ' ' + str(round(self.points[0][1], 8)) + '; '
+            # add angles from ee1
+            s += ' '.join([str(round(a.in_degrees(), 8)) for a in self.ee1_angles]) + '; '
+            # add lengths
+            s += ' '.join([str(round(l, 8)) for l in self.lengths]) + '; '
+            if self.ee1_grappled:
+                s += str(1)
+            else:
+                s += str(2)
+            return s
+        else:
+            # add ee2 position
+            s = str(round(self.points[-1][0], 8)) + ' ' + str(round(self.points[-1][1], 8)) + '; '
+            # add angles from ee1
+            s += ' '.join([str(round(a.in_degrees(), 8)) for a in self.ee2_angles]) + '; '
+            # add lengths
+            s += ' '.join([str(round(l, 8)) for l in self.lengths]) + '; '
+            if self.ee1_grappled:
+                s += str(1)
+            else:
+                s += str(2)
+            return s
 
     def str2list(self):
-        # if self.ee1_grappled:
-        arr  = []
-        arr.append(self.points[0][0])
-        arr.append(self.points[0][1])
-        for i in self.ee1_angles:
-            arr.append(float(str(round(i.in_degrees(), 8))))
-        for i in self.lengths:
-            arr.append(float(str(round(i, 8))))
         if self.ee1_grappled:
-            arr.append(1)
+            arr  = []
+            arr.append(self.points[0][0])
+            arr.append(self.points[0][1])
+            for i in self.ee1_angles:
+                arr.append(float(str(round(i.in_degrees(), 8))))
+            for i in self.lengths:
+                arr.append(float(str(round(i, 8))))
+            if self.ee1_grappled:
+                arr.append(1)
+            else:
+                arr.append(2)
+            return arr
+    # def str2list_ee2(self):    
         else:
-            arr.append(2)
-        return arr
-        # else:
-        #     arr  = []
-        #     arr.append(self.points[-1][0])
-        #     arr.append(self.points[-1][1])
-        #     for i in self.ee2_angles:
-        #         arr.append(float(str(round(i.in_degrees(), 8))))
-        #     for i in self.lengths:
-        #         arr.append(float(str(round(i, 8))))
-        #     if self.ee1_grappled:
-        #         arr.append(1)
-        #     else:
-        #         arr.append(2)
-        #     return arr
-    
+            arr  = []
+            arr.append(self.points[-1][0])
+            arr.append(self.points[-1][1])
+            for i in self.ee2_angles:
+                arr.append(float(str(round(i.in_degrees(), 8))))
+            for i in self.lengths:
+                arr.append(float(str(round(i, 8))))
+            if self.ee1_grappled:
+                arr.append(1)
+            else:
+                arr.append(2)
+            return arr
+
 
     def get_HeadeePos(self):
         if self.ee1_grappled:

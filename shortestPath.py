@@ -46,18 +46,34 @@ class astar():
     def difference(self,strA,strB,spec):
         if strA[-1] != strB[-1]:
             return 10000
-        else:
-            robotA = self.str2robotConfigqq(strA)
-            robotB = self.str2robotConfigqq(strB)
-            return test_config_distance_out(robotA,robotB,spec)
+        if strA[-1] == strB[-1]:
+            if strA[-1]==1:
+                if strA.split(' ')[0] == strB.split(' ')[0] and strA.split(' ')[1] == strA.split(' ')[1]:
+                    robotA = self.str2robotConfigqq(strA)
+                    robotB = self.str2robotConfigqq(strB)
+                    return test_config_distance_out(robotA,robotB,spec)
+                else:
+                    return 10000
+            else:
+                robotA = self.str2robotConfigqq(strA)
+                robotB = self.str2robotConfigqq(strB)
+                return test_config_distance_out(robotA,robotB,spec)
             
     def differenceTF(self,strA,strB,spec):
         if strA[-1] != strB[-1]:
             return False
-        else:
-            robotA = self.str2robotConfigqq(strA)
-            robotB = self.str2robotConfigqq(strB)
-            return test_config_distance(robotA,robotB,spec)
+        if strA[-1] == strB[-1]:
+            if strA[-1]==1:
+                if strA.split(' ')[0] == strB.split(' ')[0] and strA.split(' ')[1] == strA.split(' ')[1]:
+                    robotA = self.str2robotConfigqq(strA)
+                    robotB = self.str2robotConfigqq(strB)
+                    return test_config_distance(robotA,robotB,spec)
+                else:
+                    return False
+            else:
+                robotA = self.str2robotConfigqq(strA)
+                robotB = self.str2robotConfigqq(strB)
+                return test_config_distance(robotA,robotB,spec)
 
     def astar_run(self,graph,finish, spec):
         queue = PriorityQueue()

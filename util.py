@@ -15,7 +15,10 @@ class Vertex:
         tmp = self.id.split(' ')
         segNum = int((len(tmp)-3)/2)
         for i in range(len(tmp)-1):
-            if i>1 and i <= 1+segNum :
+            if i < 2:
+                qq = float(tmp[i].replace(';',''))
+                qq = qq*10                
+            elif i>1 and i <= 1+segNum :
                 qq = float(tmp[i].replace(';',''))
                 tmpAng = Angle(degrees=qq)
                 qq = tmpAng.in_radians()
