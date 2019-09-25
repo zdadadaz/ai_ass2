@@ -149,6 +149,27 @@ class RobotConfig:
                 arr.append(2)
             return arr
 
+    def str2list_radians(self):
+        if self.ee1_grappled:
+            arr  = []
+            arr.append(self.points[0][0])
+            arr.append(self.points[0][1])
+            for i in self.ee1_angles:
+                arr.append(float(i.in_radians()))
+            for i in self.lengths:
+                arr.append(float(i))
+            return arr
+    # def str2list_ee2(self):    
+        else:
+            arr  = []
+            arr.append(self.points[-1][0])
+            arr.append(self.points[-1][1])
+            for i in self.ee2_angles:
+                arr.append(float(i.in_radians()))            
+            for i in self.lengths:
+                arr.append(float(i))                
+            return arr
+
 
     def get_HeadeePos(self):
         if self.ee1_grappled:

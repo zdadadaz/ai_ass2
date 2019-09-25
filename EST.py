@@ -39,8 +39,9 @@ class EST(ProblemSpec):
         mid = (A+B)/2
         mid[-1] = A[-1]
         midRobot = make_robot_config_with_arr(A[0],A[1],mid[2:(2+self.num_segments)],mid[(2+self.num_segments):(2+2*self.num_segments)],A[-1])
+        
         # print(midRobot)
-        checkList.append(str(midRobot))
+        # checkList.append(str(midRobot))
         if not tester.self_obstacle_env_test(midRobot):
             return True # have collision
         self.collision_check(A  ,mid, n-1,checkList)
@@ -156,10 +157,23 @@ class EST(ProblemSpec):
             Setting['tau'] = 0.4
             return Setting
         
-         # 3g3_m1
-        elif self.num_grapple_points == 3 and self.num_segments == 3:
+        # 4g4_m1,
+        elif self.num_grapple_points == 4 and points[0][0]==0.5 and points[0][1]==0.1:
             Setting['np-rd']=1249901
             Setting['random']=22938921
+            Setting['ee1Flag']=[True,False,True,False]
+            Setting['numberSamples_global']=1000
+            Setting['numberSamples_local']=500
+            Setting['numChange']=3
+            Setting['angConstraint'] =  [[0, 90],[-45,90],[0,90],[0,180]]
+            Setting['layer'] = 2
+            Setting['tau'] = 0.4
+            return Setting
+        
+         # 3g3_m1
+        elif self.num_grapple_points == 3 and self.num_segments == 3:
+            Setting['np-rd']=30
+            Setting['random']=500
             Setting['ee1Flag']=[True,False,True]
             Setting['numberSamples_global']=800
             Setting['numberSamples_local']=200
@@ -234,11 +248,11 @@ class EST(ProblemSpec):
             return Setting
         # 4g1_m2, need train
         elif self.num_grapple_points == 1 and self.num_segments == 4 and points[0][0] != 0.5 and points[0][1] != 0.3:
-            Setting['np-rd']=987124
+            Setting['np-rd']=128979
             Setting['random']=55011
             Setting['ee1Flag']=[True]
             Setting['numberSamples_global']=1000
-            Setting['numberSamples_local']=100
+            Setting['numberSamples_local']=500
             Setting['numChange']=0
             Setting['angConstraint'] =[]
             Setting['layer'] = 2
@@ -549,8 +563,9 @@ class EST(ProblemSpec):
                             T.addEdge(str(m),str(q_test_conf))
                             return q_test_conf
                     else:
-                        T.addEdge(str(m),str(q_test_conf))
-                        return q_test_conf
+                        if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:                        
+                            T.addEdge(str(m),str(q_test_conf))
+                            return q_test_conf
             else: # find middle point
                 tmpA = np.asarray(q.str2list())
                 tmpB = np.asarray(q_test_conf.str2list())
@@ -565,8 +580,9 @@ class EST(ProblemSpec):
                                 T.addEdge(str(m),str(midRobot))
                                 return midRobot
                         else:
-                            T.addEdge(str(m),str(midRobot))
-                            return midRobot
+                            if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                                T.addEdge(str(m),str(midRobot))
+                                return midRobot
                     # T.addEdge(str(m),str(midRobot))
                     # return midRobot
         return None

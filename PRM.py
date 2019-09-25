@@ -11,7 +11,9 @@ from util import write_sampling_config
 import math
 import random
 from support.robot_config import make_robot_config_with_arr 
-
+import sys
+from interpolation import Interpolation
+import time
 
 class PRM(EST):
     def __init__(self, input_file):
@@ -30,7 +32,9 @@ class PRM(EST):
             #     self.gDict[gPoints[i]].addVertex(str(goalState))
 
         
-    def run_PRM(self,outPath):   
+    def run_PRM(self,outPath):
+        start = time.time()
+               
         numberSamples_global = self.Setting['numberSamples_global']
         numberSamples_local = self.Setting['numberSamples_local']
         numBridge = 50
@@ -52,6 +56,11 @@ class PRM(EST):
         graph = self.gDict[gPoints[0]]
         ee1flags = self.Setting['ee1Flag']
         while True:
+            timescript =  time.time()- start
+            if (timescript > 120.0):
+                print("Out of time")
+                print("Remove me before submit")
+                break
             for g in range(self.num_grapple_points):
                 count_ite += 1
                 eexy = gPoints[g]
@@ -61,7 +70,7 @@ class PRM(EST):
                     addState = 0     
                 
                 if self.num_grapple_points > 1:
-                    if count_change<change:
+                    if count_change<change and ee1flags[g+1] != ee1flags[g]:
                         print("build bridge")
                         self.sampling_bridge(graph,numBridge,eexy,gPoints[g+1],ee1flags[g])
                         count_change += 1
@@ -70,6 +79,8 @@ class PRM(EST):
                     print("build local graph")
                     self.PRM_expansionBuildGraph(graph,numberSamples_local,expand_tau,eexy,ee1flags[g])
                     self.connectVertex(graph,eexy,knearest,conn_tau)
+                
+                
 
             print("global collision check")
             self.PRM_collision_check(graph,clayer)
@@ -107,11 +118,12 @@ class PRM(EST):
             for i in range(len(p)):
                 if int(p[i][0][-1]) == 2:
                     rob = self.str2robotConfig(p[i][0])
-                    out.append(str(rob))
+                    # out.append(str(rob))
                     arr.append(rob.strEE1out()[:-3])
                 else:
-                    out.append(p[i][0])
+                    # out.append(p[i][0])
                     arr.append(p[i][0][:-3])
+                out.append(int(p[i][0][-1]))
                     
         write_robot_config_list_to_file(outPath,arr) 
         return True,out
@@ -186,14 +198,16 @@ class PRM(EST):
                                     if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:                        
                                         graph.addEdge(curNode,knNode)                                
                                 else:
-                                    graph.addEdge(curNode,knNode)
+                                    if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:                        
+                                        graph.addEdge(curNode,knNode)
                     else:
                         if curNode[-1] == knNode[-1]:
                             if int(curNode[-1]) == 1:
                                 if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
                                     graph.addEdge(curNode,knNode)
                             else:
-                                graph.addEdge(curNode,knNode)
+                                if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                                    graph.addEdge(curNode,knNode)
 
         # else: 
         #     r,c = output.shape
@@ -261,10 +275,11 @@ class PRM(EST):
                             successCount += 1
                             prevRobot = q
                     else:
-                        count_node+=1
-                        T.addEdge(str(m),str(q))
-                        successCount += 1
-                        prevRobot = q
+                        if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                            count_node+=1
+                            T.addEdge(str(m),str(q))
+                            successCount += 1
+                            prevRobot = q
  
             else:  # obstacle sampling
                 successCount = 0
@@ -289,22 +304,23 @@ class PRM(EST):
         # attach init state on graph
         verInit = graph.getVertex(str(initState)) 
         if not verInit.checkConnections():
-            myarray = np.asarray(initState.get_position())
-            r,c = myarray.shape
-            initArr = myarray.reshape(1,c*r)
-            self.addState2Graph(tree,graph,initArr,str(initState),2)
+            # myarray = np.asarray(initState.get_position())
+            # r,c = myarray.shape
+            # initArr = myarray.reshape(1,c*r)
+            initArr = np.asarray([initState.str2list_radians()])
+            self.addState2Graph(tree,graph,initArr,str(initState),20)
         # attach goal state on graph
         verGoal = graph.getVertex(str(goalState)) 
         if not verGoal.checkConnections():
-            myarray = np.asarray(goalState.get_position())
-            r,c = myarray.shape
-            goalArr = myarray.reshape(1,c*r)
-            # initArr might be error, need array[[]]
+            # myarray = np.asarray(goalState.get_position())
+            # r,c = myarray.shape
+            # goalArr = myarray.reshape(1,c*r)
+            goalArr = np.asarray([goalState.str2list_radians()])
             self.addState2Graph(tree,graph,goalArr,str(goalState),20)
 
     def addState2Graph(self,tree,graph,arr,curNode,knearest):
-        arr[0][0] = arr[0][0]*10
-        arr[0][1] = arr[0][1]*10
+        arr[0][0] = arr[0][0]*10000
+        arr[0][1] = arr[0][1]*10000
         dist, ind = tree.query(arr, k=knearest) 
         # m = self.str2robotConfig(str(curNode))
         for kn in range(0,knearest):
@@ -314,14 +330,16 @@ class PRM(EST):
                 # if curNode[0] == knNode[0] and curNode[1] == knNode[1]:
                 # if curNode == "0.5 0.1; 8.27754461 14.87806786 139.17317948; 0.1753264 0.1 0.10378391; 1" or knNode == "0.5 0.1; 8.27754461 14.87806786 139.17317948; 0.1753264 0.1 0.10378391":
                 #     qq=1
-                if curNode[-1] == knNode[-1]:
-                    if int(curNode[-1]) == 1:
-                        if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
-                            graph.addEdge(curNode,knNode)
-                            break
-                    else:
-                        graph.addEdge(curNode,knNode)
-                        break
+                if curNode != knNode:
+                    if curNode[-1] == knNode[-1]:
+                        if int(curNode[-1]) == 1:
+                            if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                                graph.addEdge(curNode,knNode)
+                                break
+                        else:
+                            if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                                graph.addEdge(curNode,knNode)
+                                break
 
 
     def KDtreeVertex(self,graph,arr,knearest,tau):
@@ -352,31 +370,17 @@ class PRM(EST):
                                     visited.add((curNode,knNode))
                                     visited.add((knNode,curNode))
                             else:
-                                graph.addEdge(curNode,knNode)
-                                graph.addEdge(knNode,curNode)
-                                visited.add((curNode,knNode))
-                                visited.add((knNode,curNode))
+                                if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                                    graph.addEdge(curNode,knNode)
+                                    graph.addEdge(knNode,curNode)
+                                    visited.add((curNode,knNode))
+                                    visited.add((knNode,curNode))
         return tree
 
-    def collision_check_one(self,robA,robB,numLayer):
-        tester = test_robot(self)
-        checkList1 =[]
-        flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),1,checkList1)
-        if(not tester.self_bounding_collision_test(robA)) and (not tester.self_bounding_collision_test(robB)) and (not flag):
-            return False
-        #   False-> no collision, True -> have collision
-        checkList = []
-        flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer,checkList)
-        # self.collision_checkList[(ver,conn_key)] = checkList
-        # self.collision_checkList[(conn_key,ver)] = checkList
-        if flag:
-            return True
-        else:
-            return False
 
     def PRM_collision_check(self,gaph,numLayer):
         # numLayer = 2
-        distB = 0.1
+        dist_tau = 0.5
         tester = test_robot(self)
         verlists = gaph.getVertices()
         count = 0
@@ -384,9 +388,33 @@ class PRM(EST):
             verA = gaph.getVertex(ver)
             connects = verA.getConnections()
             robA = self.str2robotConfig(verA.getId())
+            if (ver == '0.5 0.1; 59.15366696 102.10110102 -9.74426746; 0.14566136 0.2 0.1; 1'):
+                q=1
+            # find whose the farest conn, do more collision check
+            adapt = []
+            if verA.checkConnections():
+                arrA = verA.getAllconnkeylist()
+                adapt = np.zeros((1,len(arrA)))
+                tree = KDTree(arrA,leaf_size=2)
+                myarray = np.asarray([robA.str2list_radians()])
+                myarray[0][0] = myarray[0][0]*10000
+                myarray[0][1] = myarray[0][1]*10000
+                dist, ind = tree.query(myarray, k=len(arrA)) 
+                # check which one is greater than threshold
+                for s in range(len(arrA)):
+                    if dist[0][s] > dist_tau:
+                        adapt[0][ind[0][s]] = 1
+                
             queue4delete = []
+            s = 0
             for conn in connects:
                 conn_key = conn
+                if adapt[0][s] == 1:
+                    numLayer_tmp = numLayer*2
+                else:
+                    numLayer_tmp = numLayer
+                s+=1
+
                 if ((ver,conn_key) not in self.visitedCollide) and ((conn_key,ver) not in self.visitedCollide):
                     self.visitedCollide.add((ver,conn_key))
                     self.visitedCollide.add((conn_key,ver))
@@ -395,7 +423,7 @@ class PRM(EST):
                     
                     # bounding box check, can decrease checking times a lot
                     checkList1 =[]
-                    flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer,checkList1)
+                    flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer_tmp,checkList1)
                     if(not tester.self_bounding_collision_test(robA)) and (not tester.self_bounding_collision_test(robB)) and (not flag):
                         continue
                     #   False-> no collision, True -> have collision
@@ -432,25 +460,26 @@ class PRM(EST):
     
 
     
-
+def main(arglist):
 # def main():
-#     file = './testcases/3g1_m2.txt'
-#     sol = './out/'+ file[:-4] + '_output.txt'
-#     prm = PRM(file)
-#     prm.run_PRM(sol)
-#     aa = test_robot(prm)
-#     qq = aa.load_output('output.txt')
-#     vis = Visualiser(prm, qq)
-   
-#   interpolation
-    # aa = test_robot(prm)
-    # qq = aa.load_output('output.txt')
-    # aa = []
-    # for i in qq:
-    #     aa.append(str(i))
-    # gginterpolat = Interpolation(aa)
-    # gg = gginterpolat.run_Interpolate()
-    # write_sampling_config('interpolation.txt',3,gg)
-
-# if __name__ == '__main__':
+    inputfilename = arglist[0]
+    sol = inputfilename + '_output.txt'
+    # interpolation_path = sol[:-4] +'_ip.txt'
+    interpolation_path = arglist[1]
+    prm = PRM(inputfilename)
+    flagPRM,ee1flag = prm.run_PRM(sol)
+    # flagPRM=True
+    aa = test_robot(prm)
+    qq = aa.load_output(sol)
+    strlist = []
+    for j in qq:
+        strlist.append(str(j))
+    # ee1flag=[]
+    gginterpolat = Interpolation(strlist,ee1flag)
+    print("Run interpolation")
+    gg = gginterpolat.run_Interpolate()
+    write_sampling_config(interpolation_path,prm.num_segments,gg)
+    
+if __name__ == '__main__':
     # main()
+    main(sys.argv[1:])

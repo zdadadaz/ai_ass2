@@ -17,7 +17,25 @@ class Vertex:
         for i in range(len(tmp)-1):
             if i < 2:
                 qq = float(tmp[i].replace(';',''))
-                qq = qq*10                
+                qq = qq*10000            
+            elif i>1 and i <= 1+segNum :
+                qq = float(tmp[i].replace(';',''))
+                tmpAng = Angle(degrees=qq)
+                qq = tmpAng.in_radians()
+            else:
+                qq = float(tmp[i].replace(';',''))
+            arr.append(qq)
+        return arr
+
+    def ass_key2list(self,in_id):
+        # not include the last flag of ee
+        arr = []
+        tmp = in_id.split(' ')
+        segNum = int((len(tmp)-3)/2)
+        for i in range(len(tmp)-1):
+            if i < 2:
+                qq = float(tmp[i].replace(';',''))
+                qq = qq*10000         
             elif i>1 and i <= 1+segNum :
                 qq = float(tmp[i].replace(';',''))
                 tmpAng = Angle(degrees=qq)
@@ -30,7 +48,12 @@ class Vertex:
     def delete_connect_id(self,key):
         if self.connectedTo.pop(key, None) is not None:
             self.connNum -= 1
-        
+    
+    def getAllconnkeylist(self):
+        arr = []
+        for con in self.connectedTo.keys():
+            arr.append(self.ass_key2list(con))
+        return arr
         
     def addNeighbor(self,nbr,weight=0):
         self.connNum += 1
@@ -123,19 +146,17 @@ class Graph:
         return iter(self.vertList.values())
 
 
-
-
 def write_sampling_config(filename,numSeg, robot_config_list):
     # numSeg = self.get_num_segment()
     f = open(filename, 'w')
     for rc in robot_config_list:
-        f.write(str(rc[0]) + ' ')
-        f.write(str(rc[1]) + ';')
+        f.write(str(round(rc[0],8)) + ' ')
+        f.write(str(round(rc[1],8)) + ';')
         for i in range(numSeg):
-            f.write(' '+str(rc[2+i]))
+            f.write(' '+str(round(rc[2+i],8)))
         f.write(';')
         for i in range(numSeg):
-            f.write(' '+str(rc[2+numSeg+i]))
+            f.write(' '+str(round(rc[2+numSeg+i],8)))
         f.write('\n')
     f.close()
 # file = './testcases/3g1_m1.txt'
