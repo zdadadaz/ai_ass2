@@ -24,13 +24,11 @@ class EST(ProblemSpec):
         self.gGoal = Graph()
         self.Setting = self.caseSetting()
         
-        np.random.seed(self.Setting['np-rd'])
-        random.seed(self.Setting['random'])
-
+        
 #   False-> no collision, True -> have collision
 #   input A,B array
     def collision_check(self,A,B, n,checkList):
-        if n ==0:
+        if n <=0:
             return False
         # check in the same ee grapple 
         if (A[0] != B[0] or A[1] != B[1] or A[-1] != B[-1]):
@@ -44,9 +42,10 @@ class EST(ProblemSpec):
         # checkList.append(str(midRobot))
         if not tester.self_obstacle_env_test(midRobot):
             return True # have collision
-        self.collision_check(A  ,mid, n-1,checkList)
-        self.collision_check(mid,B, n-1,checkList)
-    
+        flagA = self.collision_check(A  ,mid, n-1,checkList)
+        flagB = self.collision_check(mid,B, n-1,checkList)
+        return flagA or flagB
+
     def sampling_eexy(self,eexy,numSampling,ee1Flag,diffAng):
         # np.random.seed(249)
         minMax = self.get_min_max_len()
@@ -246,17 +245,17 @@ class EST(ProblemSpec):
             Setting['layer'] = 2
             Setting['tau'] = 0.4
             return Setting
-        # 4g1_m2, need train
+        # 4g1_m2
         elif self.num_grapple_points == 1 and self.num_segments == 4 and points[0][0] != 0.5 and points[0][1] != 0.3:
-            Setting['np-rd']=128979
-            Setting['random']=55011
+            Setting['np-rd']=12324
+            Setting['random']=500
             Setting['ee1Flag']=[True]
-            Setting['numberSamples_global']=1000
-            Setting['numberSamples_local']=500
+            Setting['numberSamples_global']=800
+            Setting['numberSamples_local']=200
             Setting['numChange']=0
             Setting['angConstraint'] =[]
-            Setting['layer'] = 2
-            Setting['tau'] = 0.4
+            Setting['layer'] = 4
+            Setting['tau'] = 0.3
             return Setting
 
 

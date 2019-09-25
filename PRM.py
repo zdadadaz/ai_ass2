@@ -26,10 +26,9 @@ class PRM(EST):
         gPoints =self.get_grapple_points()
         # for i in range(self.num_grapple_points):
         self.gDict[gPoints[0]] = Graph()
-            # if (initPos[0] == gPoints[i][0] and initPos[1] == gPoints[i][1]):
-            #     self.gDict[gPoints[i]].addVertex(str(initState))
-            # if (goalPos[0] == gPoints[i][0] and goalPos[1] == gPoints[i][1]):
-            #     self.gDict[gPoints[i]].addVertex(str(goalState))
+        
+        np.random.seed(self.Setting['np-rd'])
+        random.seed(self.Setting['random'])
 
         
     def run_PRM(self,outPath):
@@ -84,9 +83,6 @@ class PRM(EST):
 
             print("global collision check")
             self.PRM_collision_check(graph,clayer)
-            # print("local collision check")
-            # for i in range(self.num_grapple_points):
-            #     self.PRM_collision_check(self.gDict[gPoints[i]],clayer)
             
             print("total vertex number:", graph.getNumbVertices())
 
@@ -94,7 +90,12 @@ class PRM(EST):
             # arrTmp = graph.vertArr
             # for i in range(len(arrTmp)):
             #     arr.append(arrTmp[i][:-3])
-            # write_robot_config_list_to_file("tmp_output.txt",arr) 
+            #     ver = graph.getVertex(arrTmp[i])
+            #     arr.append("connections below")
+            #     for conn in ver.getConnections():
+            #         arr.append(conn)
+            # write_robot_config_list_to_file("./tmp_output.txt",arr) 
+        
         
             init = self.get_init_state()
             state = str(init)
@@ -111,17 +112,15 @@ class PRM(EST):
         
         arr =[]
         # print collision check point in output
-        # self.add_collision2output(self.gPrm,self.collision_checkList,arr,path)
+        # self.add_collision2output(graph,self.collision_checkList,arr,pathTot[0])
         # normal printout
         out = []
         for p in pathTot:
             for i in range(len(p)):
                 if int(p[i][0][-1]) == 2:
                     rob = self.str2robotConfig(p[i][0])
-                    # out.append(str(rob))
                     arr.append(rob.strEE1out()[:-3])
                 else:
-                    # out.append(p[i][0])
                     arr.append(p[i][0][:-3])
                 out.append(int(p[i][0][-1]))
                     
@@ -133,7 +132,7 @@ class PRM(EST):
         tester = test_robot(self)
         points = self.grapple_points
         numberSamples_tmp = numberSamples
-
+        D = [tau,0.1]
         count =0
         loop_count = 0
         
@@ -162,6 +161,9 @@ class PRM(EST):
                         count+=1
                     if count > numberSamples:
                         break
+                else:
+                    self.obstacle_sampling_near_only(graph,rob,D,1,tau)
+                    
             
         if addState==1:
             init = self.get_init_state()
@@ -228,6 +230,26 @@ class PRM(EST):
         #                     else:
         #                         graph.addEdge(curNode,knNode)
 
+    def obstacle_sampling_near_only(self,T,q,D,k,tau):
+        tester = test_robot(self)
+        q_test = self.sampling_withinD(q,D,k,q.get_HeadeePos(),q.ee1_grappled)
+        for i in range(k):
+            q_test_conf = self.assign_config(q_test,i)
+            # find q_test in the distance of D from q
+            if(tester.self_collision_test(q_test_conf)):
+                curNode = str(q)
+                knNode = str(q_test_conf)
+                if curNode[-1] == knNode[-1]:
+                    if int(curNode[-1]) == 1:
+                        if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
+                            T.addVertex(str(q_test_conf))
+                            return q_test_conf
+                    else:
+                        if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:                        
+                            T.addVertex(str(q_test_conf))
+                            return q_test_conf
+
+   
     def PRM_expansionBuildGraph(self,graph,numberOfsampling,tau,eexy,ee1Flag):
         # numberOfsampling = 100
         success_limit = 10
@@ -377,53 +399,103 @@ class PRM(EST):
                                     visited.add((knNode,curNode))
         return tree
 
+    def check_obstacle_primitive(self,A,B):
+        stepslength = 0.01
+        tester = test_robot(self)
+
+        ee1flag = A[-1]
+        rob1 = np.asarray(A[:-1])
+        rob2 = np.asarray(B[:-1])
+        
+        numSeg = int((len(rob1)-2)/2)
+
+        diff = abs(rob1 - rob2)
+        step = (np.ceil(diff/stepslength))
+        step = step.astype(int)
+        maxStep = max(step)
+        stepslengthlist = diff/maxStep
+        maxSteplist = [1,maxStep-1]
+        for i in range(len(stepslengthlist)):
+            stepslength = stepslengthlist[i]
+            stepslength = (-1)*stepslength if rob1[i] > rob2[i] else stepslength
+            arr = []
+            if (step[i] ==0):
+                # for j in maxSteplist:
+                for j in range(1,maxStep):
+                    if i > 1 and i<2+numSeg:
+                        tmpAng = rob1[i]
+                        arr.append(tmpAng)
+                    else:
+                        arr.append(rob1[i])
+            else:
+                # for j in maxSteplist:
+                for j in range(1,maxStep):
+                    if i>1 and i<2+numSeg:
+                        tmpAng = rob1[i]+ j * stepslength
+                        arr.append(tmpAng)
+                    else:
+                        tmp = rob1[i] + j * stepslength
+                        arr.append(tmp)
+            if i == 0:
+                whole = np.asarray(arr)
+            else:
+                whole = np.vstack([whole, arr])
+        whole = np.transpose(whole)
+        for pr in whole:
+            pr_rob = make_robot_config_with_arr(A[0],A[1],pr[2:(2+self.num_segments)],pr[(2+self.num_segments):(2+2*self.num_segments)],ee1flag)
+            if not tester.self_obstacle_env_test(pr_rob):
+                return True # have collision
+        return False # no collision
+
+
 
     def PRM_collision_check(self,gaph,numLayer):
         # numLayer = 2
-        dist_tau = 0.5
+        dist_tau = 100
         tester = test_robot(self)
         verlists = gaph.getVertices()
         count = 0
-        for ver in verlists:
+        for ver in gaph.vertArr:
+        # for ver in verlists:
             verA = gaph.getVertex(ver)
             connects = verA.getConnections()
             robA = self.str2robotConfig(verA.getId())
-            if (ver == '0.5 0.1; 59.15366696 102.10110102 -9.74426746; 0.14566136 0.2 0.1; 1'):
-                q=1
+            
             # find whose the farest conn, do more collision check
-            adapt = []
-            if verA.checkConnections():
-                arrA = verA.getAllconnkeylist()
-                adapt = np.zeros((1,len(arrA)))
-                tree = KDTree(arrA,leaf_size=2)
-                myarray = np.asarray([robA.str2list_radians()])
-                myarray[0][0] = myarray[0][0]*10000
-                myarray[0][1] = myarray[0][1]*10000
-                dist, ind = tree.query(myarray, k=len(arrA)) 
-                # check which one is greater than threshold
-                for s in range(len(arrA)):
-                    if dist[0][s] > dist_tau:
-                        adapt[0][ind[0][s]] = 1
+            # adapt = []
+            # if verA.checkConnections():
+            #     arrA = verA.getAllconnkeylist()
+            #     adapt = np.zeros((1,len(arrA)))
+            #     tree = KDTree(arrA,leaf_size=2)
+            #     myarray = np.asarray([robA.str2list_radians()])
+            #     myarray[0][0] = myarray[0][0]*10000
+            #     myarray[0][1] = myarray[0][1]*10000
+            #     dist, ind = tree.query(myarray, k=len(arrA)) 
+            #     # check which one is greater than threshold
+            #     for s in range(len(arrA)):
+            #         if dist[0][s] > dist_tau:
+            #             adapt[0][ind[0][s]] = 1
                 
             queue4delete = []
             s = 0
             for conn in connects:
                 conn_key = conn
-                if adapt[0][s] == 1:
-                    numLayer_tmp = numLayer*2
-                else:
-                    numLayer_tmp = numLayer
-                s+=1
+                # if adapt[0][s] == 1:
+                #     numLayer_tmp = numLayer*4
+                # else:
+                #     numLayer_tmp = numLayer
+                # s+=1
 
-                if ((ver,conn_key) not in self.visitedCollide) and ((conn_key,ver) not in self.visitedCollide):
+                if ((ver,conn_key) not in self.visitedCollide) or ((conn_key,ver) not in self.visitedCollide):
                     self.visitedCollide.add((ver,conn_key))
                     self.visitedCollide.add((conn_key,ver))
                     verB = gaph.getVertex(conn)
                     robB = self.str2robotConfig(verB.getId())
+                
                     
-                    # bounding box check, can decrease checking times a lot
-                    checkList1 =[]
-                    flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer_tmp,checkList1)
+                    # # bounding box check, can decrease checking times a lot
+                    checkList =[]
+                    flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer,checkList)
                     if(not tester.self_bounding_collision_test(robA)) and (not tester.self_bounding_collision_test(robB)) and (not flag):
                         continue
                     #   False-> no collision, True -> have collision
@@ -442,23 +514,32 @@ class PRM(EST):
                 verB = gaph.getVertex(dd)
                 verB.delete_connect_id(verA.getId())
 
-        print("====  collision check times ==== ", count)
+        print("====  collision violate times ==== ", count)
     def add_collision2output(self,graph, collision_dict,arr,path):
         for i in range(len(path)):
             if i != len(path) -1:
                 # print(path[i])
                 A = graph.getVertex(path[i][0])
                 B = graph.getVertex(path[i+1][0])
-                arr.append(path[i][0][:-3])
+                if int(path[i][0][-1]) == 2:
+                    rob = self.str2robotConfig(path[i][0])
+                    arr.append(rob.strEE1out()[:-3])
+                else:
+                    arr.append(path[i][0][:-3])
+                # arr.append(path[i][0][:-3])
                 if (A.getId(),B.getId()) in collision_dict:
                     clists = collision_dict[(A.getId(),B.getId())] 
                     for j in clists:
-                        arr.append(j[:-3])
+                        if int(j[-1]) == 2:
+                            rob = self.str2robotConfig(j)
+                            arr.append(rob.strEE1out()[:-3])
+                        else:
+                            arr.append(j[:-3])
+                        # arr.append(j[:-3])
             else:
                 arr.append(path[i][0][:-3])
 
     
-
     
 def main(arglist):
 # def main():
