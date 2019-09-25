@@ -56,10 +56,10 @@ class PRM(EST):
         ee1flags = self.Setting['ee1Flag']
         while True:
             timescript =  time.time()- start
-            if (timescript > 120.0):
-                print("Out of time")
-                print("Remove me before submit")
-                break
+            # if (timescript > 120.0):
+            #     print("Out of time")
+            #     print("Remove me before submit")
+            #     break
             for g in range(self.num_grapple_points):
                 count_ite += 1
                 eexy = gPoints[g]
