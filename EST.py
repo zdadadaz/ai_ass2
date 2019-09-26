@@ -134,15 +134,18 @@ class EST(ProblemSpec):
         # 3g2_m1,3g2_m2
         if self.num_grapple_points == 2:
             # Setting['np-rd']=1249901
-            Setting['np-rd']=9532
-            Setting['random']=22938921
+            Setting['np-rd']=30
+            Setting['random']=1000
+            # Setting['np-rd']=9532
+            # Setting['random']=22938921
             Setting['ee1Flag']=[True,False]
             Setting['numberSamples_global']=1000
-            Setting['numberSamples_local']=500
+            Setting['numberSamples_local']=200
             Setting['numChange']=1
             Setting['angConstraint'] = [[0, 100],[0,-90],[0,-90]]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
+            Setting['collision_tau'] = 10000.0
             return Setting
         # 4g4_m2, 4g4_m3
         elif self.num_grapple_points == 4 and points[0][0]==0.245 and points[0][1]==0.5:
@@ -155,6 +158,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] = [[90, 180],[0,-120],[-90,10],[45,90]]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
+            Setting['collision_tau'] = 1.0
             return Setting
         
         # 4g4_m1,
@@ -168,6 +172,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] =  [[0, 90],[-45,90],[0,90],[0,180]]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
+            Setting['collision_tau'] = 1.0
             return Setting
         
          # 3g3_m1
@@ -181,6 +186,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] = [[0, 90],[0,180],[0,180]]
             Setting['layer'] = 3
             Setting['tau'] = 0.4
+            Setting['collision_tau'] = 10000.0
             return Setting
         
         # 4g3_m2
@@ -194,6 +200,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] = [[0, 90],[-90,90],[0,180],[45,90]]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
+            Setting['collision_tau'] = 1.0
             return Setting
         
         # 5g3_m1,m2,m3
@@ -207,6 +214,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] = [[0, 90],[-45,45],[0,90],[0,180],[0,180]]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
+            Setting['collision_tau'] = 1.0
             return Setting
 
         # 3g1_m0,
@@ -220,6 +228,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] =[]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
+            Setting['collision_tau'] = 10000.0
             return Setting
 
         # 3g1_m1,3g1_m2
@@ -233,6 +242,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] =[]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
+            Setting['collision_tau'] = 0.4
             return Setting
         # 4g1_m1
         elif self.num_grapple_points == 1 and self.num_segments == 4 and points[0][0] == 0.5 and points[0][1] == 0.3:
@@ -245,6 +255,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] =[]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
+            Setting['collision_tau'] = 0.4
             return Setting
         # 4g1_m2
         elif self.num_grapple_points == 1 and self.num_segments == 4 and points[0][0] != 0.5 and points[0][1] != 0.3:
@@ -257,6 +268,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] =[]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
+            Setting['collision_tau'] = 0.3
             return Setting
 
 

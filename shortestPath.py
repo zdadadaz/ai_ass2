@@ -27,9 +27,9 @@ class astar():
             arr.append(i)
         return arr
 
-    def heuristic_func(self,nextNode,finish,spec):
+    def heuristic_func(self,graph,nextNode,finish,spec):
         # print(self.difference(nextNode,finish))
-        return self.difference(nextNode,finish,spec)
+        return self.difference(graph,nextNode,finish,spec)
         # return 0
     
     def str2robotConfigqq(self, stringInput):
@@ -42,7 +42,7 @@ class astar():
         else: 
             return rob_conf_ee2(ee1x, ee1y, ee1_angles, lengths, ee2_grappled=True)
 
-    def difference(self,strA,strB,spec):
+    def difference(self,graph,strA,strB,spec):
         if strA[-1] != strB[-1]:
             return 10000
         if strA[-1] == strB[-1]:
@@ -53,6 +53,7 @@ class astar():
                     return test_config_distance_out(robotA,robotB,spec)
                 else:
                     return 10000
+                    # return (float)verB.connNum /(float)graph.getNumbVertices()
             else:
                 if strA.split(' ')[0] == strB.split(' ')[0] and strA.split(' ')[1] == strA.split(' ')[1]:
                     robotA = self.str2robotConfigqq(strA)
@@ -60,6 +61,7 @@ class astar():
                     return test_config_distance_out(robotA,robotB,spec)
                 else:
                     return 10000
+                    # return (float)verB.connNum /(float)graph.getNumbVertices()
             
     def differenceTF(self,strA,strB,spec):
         if strA[-1] != strB[-1]:
@@ -112,11 +114,11 @@ class astar():
                         newNode = astar(state=i,parent=curNode,depth = curNode.depth+1,cost =newCost)
                         weights[i] = newNode
                         weights[i].sofar_cost = newCost
-                        priority_cost = newCost + self.heuristic_func(i,finish,spec)
+                        priority_cost = newCost + self.heuristic_func(graph,i,finish,spec)
                         queue.put(Prioritize(int(priority_cost),weights[i]))
                     elif newCost < weights[i].sofar_cost:
                         weights[i].sofar_cost = newCost
-                        priority_cost = newCost + self.heuristic_func(i,finish,spec)
+                        priority_cost = newCost + self.heuristic_func(graph,i,finish,spec)
                         queue.put(Prioritize(int(priority_cost),weights[i]))
         return []
 
@@ -156,8 +158,8 @@ class astar():
                         queue.put(Prioritize(int(priority_cost),weights[i]))
                     elif newCost < weights[i].sofar_cost:
                         newNode = astar(state=i.getId(),parent=curNode,depth = curNode.depth+1,cost =newCost)
-                        weights[i.getId()] = newNode
+                        weights[i] = newNode
                         weights[i].sofar_cost = newCost
-                        priority_cost = newCost + self.heuristic_func(i,finish,spec)
+                        priority_cost = newCost + self.heuristic_func(graph,i,finish,spec)
                         queue.put(Prioritize(int(priority_cost),weights[i]))
         return []

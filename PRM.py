@@ -163,6 +163,7 @@ class PRM(EST):
                     if count > numberSamples:
                         break
                 else:
+                    # print("add 20 obstacle samples")
                     self.obstacle_sampling_near_only(graph,rob,D,1,tau)
                     
             
@@ -455,7 +456,8 @@ class PRM(EST):
 
     def PRM_collision_check(self,gaph,numLayer):
         # numLayer = 2
-        dist_tau = 100
+        # dist_tau = 1.0
+        dist_tau = self.Setting['collision_tau']
         tester = test_robot(self)
         verlists = gaph.getVertices()
         count = 0
@@ -466,19 +468,19 @@ class PRM(EST):
             robA = self.str2robotConfig(verA.getId())
             
             # find whose the farest conn, do more collision check
-            # adapt = []
-            # if verA.checkConnections():
-            #     arrA = verA.getAllconnkeylist()
-            #     adapt = np.zeros((1,len(arrA)))
-            #     tree = KDTree(arrA,leaf_size=2)
-            #     myarray = np.asarray([robA.str2list_radians()])
-            #     myarray[0][0] = myarray[0][0]*10000
-            #     myarray[0][1] = myarray[0][1]*10000
-            #     dist, ind = tree.query(myarray, k=len(arrA)) 
-            #     # check which one is greater than threshold
-            #     for s in range(len(arrA)):
-            #         if dist[0][s] > dist_tau:
-            #             adapt[0][ind[0][s]] = 1
+            adapt = []
+            if verA.checkConnections():
+                arrA = verA.getAllconnkeylist()
+                adapt = np.zeros((1,len(arrA)))
+                tree = KDTree(arrA,leaf_size=2)
+                myarray = np.asarray([robA.str2list_radians()])
+                myarray[0][0] = myarray[0][0]*10000
+                myarray[0][1] = myarray[0][1]*10000
+                dist, ind = tree.query(myarray, k=len(arrA)) 
+                # check which one is greater than threshold
+                for s in range(len(arrA)):
+                    if dist[0][s] > dist_tau:
+                        adapt[0][ind[0][s]] = 1
                 
             queue4delete = []
             s = 0
@@ -507,12 +509,14 @@ class PRM(EST):
                     # tester = test_robot(self)
                     # qq = tester.collision_test(robA,robB,0.4)
 
-
-                    flag_pr = self.check_obstacle_primitive(robA.str2list(),robB.str2list())
-                    # # bounding box check, can decrease checking times a lot
                     checkList =[]
-                    flag = False
-                    # flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer,checkList)
+                    if adapt[0][s] == 1:
+                        flag = False
+                        flag_pr = self.check_obstacle_primitive(robA.str2list(),robB.str2list())
+                    else:
+                    # # bounding box check, can decrease checking times a lot
+                        flag_pr = False
+                        flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer,checkList)
                     if(not tester.self_bounding_collision_test(robA)) and (not tester.self_bounding_collision_test(robB)) and (not flag) and (not flag_pr):
                         continue
                     #   False-> no collision, True -> have collision
