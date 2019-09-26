@@ -27,8 +27,8 @@ class PRM(EST):
         # for i in range(self.num_grapple_points):
         self.gDict[gPoints[0]] = Graph()
         
-        np.random.seed(self.Setting['np-rd'])
-        random.seed(self.Setting['random'])
+        # np.random.seed(self.Setting['np-rd'])
+        # random.seed(self.Setting['random'])
 
         
     def run_PRM(self,outPath):
@@ -500,14 +500,16 @@ class PRM(EST):
                     verB = gaph.getVertex(conn_key)
                     robB = self.str2robotConfig(verB.getId())
                     
-                    # idA = '0.645 0.5; -141.77320637 -11.92484211 -94.91709154 -112.92655244; 0.12207992 0.13179508 0.15836591 0.14277544; 1'
-                    # idB ='0.645 0.5; -164.35374694 -8.07982561 -89.15798794 -90.25112557; 0.16919848 0.16788037 0.08475228 0.14199692; 1'
-                    # idA = '0.5 0.3; 71.13552081 -33.74445141 39.655877 47.77960281; 0.16803211 0.2 0.1772888 0.1; 1'
-                    # idB = '0.5 0.3; 93.1665 -20.16590306 61.23932585 68.6735067; 0.1 0.1 0.1 0.15333205; 1'
+                    # idA ='0.5 0.1; 17.11552405 46.16114993 79.48422487 31.67332461; 0.11502017 0.11508678 0.11821618 0.12656738; 1'
+                    # idB ='0.5 0.1; 17.01306426 47.1029291 67.73374325 14.29924812; 0.19926977 0.14879958 0.12901342 0.14967376; 1'
+                    # checkList =[]
                     # robA = self.str2robotConfig(idA)
                     # robB = self.str2robotConfig(idB)
-                    # tester = test_robot(self)
-                    # qq = tester.collision_test(robA,robB,0.4)
+                    # aa = np.asarray(robA.str2list_radians())-np.asarray(robB.str2list_radians())
+                    # saa = np.sum(np.absolute(aa))
+                    # flag_pr = self.check_obstacle_primitive(robA.str2list(),robB.str2list())
+                    # flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer,checkList)
+                    
 
                     checkList =[]
                     if adapt[0][s] == 1:

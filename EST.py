@@ -189,10 +189,12 @@ class EST(ProblemSpec):
             Setting['collision_tau'] = 10000.0
             return Setting
         
-        # 4g3_m2
-        elif self.num_grapple_points == 3 and self.num_segments == 4 :
+        
+        # 4g3_m1,4g3_m2
+        elif self.num_grapple_points == 3 and self.num_segments == 4:
             Setting['np-rd']=201840
             Setting['random']=550
+            
             Setting['ee1Flag']=[True,False,True]
             Setting['numberSamples_global']=800
             Setting['numberSamples_local']=200
@@ -200,7 +202,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] = [[0, 90],[-90,90],[0,180],[45,90]]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
-            Setting['collision_tau'] = 1.0
+            Setting['collision_tau'] = 10000.0
             return Setting
         
         # 5g3_m1,m2,m3

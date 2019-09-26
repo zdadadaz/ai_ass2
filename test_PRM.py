@@ -13,8 +13,9 @@ class test_PRM(unittest.TestCase):
         
         # colide
         # check collision more times in long distance one
-        # files = ['./testcases/3g2_m1.txt','./testcases/3g2_m2.txt'] 
-        # files = ['./testcases/3g3_m1.txt'] 
+        # files = ['./testcases/g2_m1.txt','./testcases/3g2_m2.txt'] 
+        files = ['./testcases/4g3_m1.txt'] 
+        # files = ['./testcases/4g3_m2.txt'] 
 
         # no result
         # files = ['./testcases/3g2_m2.txt','./testcases/3g3_m1.txt']
