@@ -1,6 +1,6 @@
 import sys
-from support.robot_config import make_robot_config_from_ee1, make_robot_config_from_ee2
-from support.obstacle import Obstacle
+from support.robot_config_m import make_robot_config_from_ee1, make_robot_config_from_ee2
+from support.obstacle_m import Obstacle
 from support.angle import Angle
 
 

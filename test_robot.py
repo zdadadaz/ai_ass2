@@ -1,8 +1,8 @@
 import sys
 import math
-from support.robot_config import RobotConfig, make_robot_config_from_ee1
-from support.problem_spec import ProblemSpec
-from support.obstacle import Obstacle
+from support.robot_config_m import RobotConfig, make_robot_config_from_ee1
+from support.problem_spec_m import ProblemSpec
+from support.obstacle_m import Obstacle
 from support.angle import Angle
 import numpy as np
 

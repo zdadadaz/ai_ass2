@@ -1,9 +1,9 @@
 from prioritize import Prioritize
 from queue import PriorityQueue
-from support.robot_config import make_robot_config_from_ee1 as rob_conf_ee1
-from support.robot_config import make_robot_config_from_ee2 as rob_conf_ee2
+from support.robot_config_m import make_robot_config_from_ee1 as rob_conf_ee1
+from support.robot_config_m import make_robot_config_from_ee2 as rob_conf_ee2
 from support.angle import Angle
-from tester import test_config_distance,test_config_distance_out
+from tester_m import test_config_distance,test_config_distance_out
 
 class astar():
     def __init__(self,state = None, parent = None,depth = 0,cost=0):

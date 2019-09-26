@@ -4,13 +4,13 @@ from sklearn.neighbors import KDTree
 import numpy as np
 from test_robot import test_robot
 from shortestPath import astar
-from support.robot_config import write_robot_config_list_to_file
-from visualiser import Visualiser 
+from support.robot_config_m import write_robot_config_list_to_file
+# from visualiser import Visualiser 
 # from interpolation import Interpolation
 from util import write_sampling_config
 import math
 import random
-from support.robot_config import make_robot_config_with_arr 
+from support.robot_config_m import make_robot_config_with_arr 
 import sys
 from interpolation import Interpolation
 import time
@@ -125,7 +125,7 @@ class PRM(EST):
         
         write_robot_config_list_to_file(outPath,arr) 
         timescript =  time.time()- start
-        print("Time duration without interpolation = "+str(timescript))
+        # print("Time duration without interpolation = "+str(timescript))
         return True,out
 
     
@@ -573,10 +573,12 @@ def main(arglist):
     # interpolation_path = sol[:-4] +'_ip.txt'
     interpolation_path = arglist[1]
     prm = PRM(inputfilename)
-    flagPRM,ee1flag = prm.run_PRM(sol)
+    flagPRM,ee1flag = prm.run_PRM(interpolation_path)
+    # flagPRM,ee1flag = prm.run_PRM(sol)
     # flagPRM=True
     aa = test_robot(prm)
-    qq = aa.load_output(sol)
+    qq = aa.load_output(interpolation_path)
+    # qq = aa.load_output(sol)
     strlist = []
     for j in qq:
         strlist.append(str(j))

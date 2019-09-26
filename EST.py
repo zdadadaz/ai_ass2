@@ -1,9 +1,9 @@
-from support.problem_spec import ProblemSpec
-from support.robot_config import RobotConfig
-from support.robot_config import make_robot_config_from_ee1 as rob_conf_ee1
-from support.robot_config import make_robot_config_from_ee2 as rob_conf_ee2
-from support.robot_config import make_robot_config_with_arr 
-from support.robot_config import write_robot_config_list_to_file
+from support.problem_spec_m import ProblemSpec
+from support.robot_config_m import RobotConfig
+from support.robot_config_m import make_robot_config_from_ee1 as rob_conf_ee1
+from support.robot_config_m import make_robot_config_from_ee2 as rob_conf_ee2
+from support.robot_config_m import make_robot_config_with_arr 
+from support.robot_config_m import write_robot_config_list_to_file
 from support.angle import Angle
 from shortestPath import astar
 
@@ -11,7 +11,7 @@ from test_robot import test_robot
 from util import Graph,Vertex
 
 import random
-from visualiser import Visualiser 
+# from visualiser import Visualiser 
 import numpy as np
 import math
 
@@ -214,7 +214,7 @@ class EST(ProblemSpec):
             Setting['angConstraint'] = [[0, 90],[-45,45],[0,90],[0,180],[0,180]]
             Setting['layer'] = 2
             Setting['tau'] = 0.4
-            Setting['collision_tau'] = 1.0
+            Setting['collision_tau'] = 1000.0
             return Setting
 
         # 3g1_m0,
@@ -641,28 +641,28 @@ class EST(ProblemSpec):
 def main():
 # def main(arglist):
     file = './testcases/4g1_m1.txt'
-    outfile = 'out/4g1_m1_output.txt'
-    # file = arglist[0]
-    # outfile = arglist[1]
+    # outfile = 'out/4g1_m1_output.txt'
+    # # file = arglist[0]
+    # # outfile = arglist[1]
     
-    prm = EST(file)
-    # config = prm.sampling(1000)
-    # robot = prm.get_init_state();
-    f = open("tmp_output.txt", "w")
-    f.write("")
-    f.close()
-    prm.run_EST(outfile)
-    # D = [1e-3,1e-3]
-    # sampleRobot = prm.sampling_withinD(robot,D,100)
-    # robot = prm.assign_config(config.tolist(),0)
-    # print(sampleRobot)
-    # print(config.tolist())
-    # config = config[:,:-1]
-    # prm.write_config('test.txt',config.tolist())
+    # prm = EST(file)
+    # # config = prm.sampling(1000)
+    # # robot = prm.get_init_state();
+    # f = open("tmp_output.txt", "w")
+    # f.write("")
+    # f.close()
+    # prm.run_EST(outfile)
+    # # D = [1e-3,1e-3]
+    # # sampleRobot = prm.sampling_withinD(robot,D,100)
+    # # robot = prm.assign_config(config.tolist(),0)
+    # # print(sampleRobot)
+    # # print(config.tolist())
+    # # config = config[:,:-1]
+    # # prm.write_config('test.txt',config.tolist())
     
-    aa = test_robot(prm)
-    qq = aa.load_output('output.txt')
-    vis = Visualiser(prm, qq)
+    # aa = test_robot(prm)
+    # qq = aa.load_output('output.txt')
+    # vis = Visualiser(prm, qq)
     # print(qq)
 
 if __name__ == '__main__':
