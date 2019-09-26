@@ -22,7 +22,7 @@ class PRM(EST):
         self.gPrm = Graph()
         self.collision_checkList = {}
         self.gDict = {}
-        self.visitedCollide =set()
+        self.visitedCollide ={}
         gPoints =self.get_grapple_points()
         # for i in range(self.num_grapple_points):
         self.gDict[gPoints[0]] = Graph()
@@ -55,7 +55,6 @@ class PRM(EST):
         graph = self.gDict[gPoints[0]]
         ee1flags = self.Setting['ee1Flag']
         while True:
-            timescript =  time.time()- start
             # if (timescript > 120.0):
             #     print("Out of time")
             #     print("Remove me before submit")
@@ -123,8 +122,10 @@ class PRM(EST):
                 else:
                     arr.append(p[i][0][:-3])
                 out.append(int(p[i][0][-1]))
-                    
+        
         write_robot_config_list_to_file(outPath,arr) 
+        timescript =  time.time()- start
+        print("Time duration without interpolation = "+str(timescript))
         return True,out
 
     
@@ -293,13 +294,15 @@ class PRM(EST):
                     if int(curNode[-1]) == 1:
                         if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
                             count_node+=1
-                            T.addEdge(str(m),str(q))
+                            T.addVertex(str(q))
+                            # T.addEdge(str(m),str(q))
                             successCount += 1
                             prevRobot = q
                     else:
                         if curNode.split(' ')[0] == knNode.split(' ')[0] and curNode.split(' ')[1] == knNode.split(' ')[1]:
                             count_node+=1
-                            T.addEdge(str(m),str(q))
+                            T.addVertex(str(q))
+                            # T.addEdge(str(m),str(q))
                             successCount += 1
                             prevRobot = q
  
@@ -400,7 +403,7 @@ class PRM(EST):
         return tree
 
     def check_obstacle_primitive(self,A,B):
-        stepslength = 0.01
+        stepslength = 0.05
         tester = test_robot(self)
 
         ee1flag = A[-1]
@@ -414,14 +417,14 @@ class PRM(EST):
         step = step.astype(int)
         maxStep = max(step)
         stepslengthlist = diff/maxStep
-        maxSteplist = [1,maxStep-1]
+        # maxSteplist = [10,maxStep-10]
         for i in range(len(stepslengthlist)):
             stepslength = stepslengthlist[i]
             stepslength = (-1)*stepslength if rob1[i] > rob2[i] else stepslength
             arr = []
             if (step[i] ==0):
                 # for j in maxSteplist:
-                for j in range(1,maxStep):
+                for j in range(1,maxStep,10):
                     if i > 1 and i<2+numSeg:
                         tmpAng = rob1[i]
                         arr.append(tmpAng)
@@ -429,7 +432,7 @@ class PRM(EST):
                         arr.append(rob1[i])
             else:
                 # for j in maxSteplist:
-                for j in range(1,maxStep):
+                for j in range(1,maxStep,10):
                     if i>1 and i<2+numSeg:
                         tmpAng = rob1[i]+ j * stepslength
                         arr.append(tmpAng)
@@ -443,6 +446,7 @@ class PRM(EST):
         whole = np.transpose(whole)
         for pr in whole:
             pr_rob = make_robot_config_with_arr(A[0],A[1],pr[2:(2+self.num_segments)],pr[(2+self.num_segments):(2+2*self.num_segments)],ee1flag)
+            # print(pr_rob)
             if not tester.self_obstacle_env_test(pr_rob):
                 return True # have collision
         return False # no collision
@@ -487,28 +491,46 @@ class PRM(EST):
                 # s+=1
 
                 if ((ver,conn_key) not in self.visitedCollide) or ((conn_key,ver) not in self.visitedCollide):
-                    self.visitedCollide.add((ver,conn_key))
-                    self.visitedCollide.add((conn_key,ver))
-                    verB = gaph.getVertex(conn)
+                    self.visitedCollide[(ver,conn_key)] = 0
+                    self.visitedCollide[(conn_key,ver)] = 0
+                    # self.visitedCollide.add((ver,conn_key))
+                    # self.visitedCollide.add((conn_key,ver))
+                    verB = gaph.getVertex(conn_key)
                     robB = self.str2robotConfig(verB.getId())
-                
                     
+                    # idA = '0.645 0.5; -141.77320637 -11.92484211 -94.91709154 -112.92655244; 0.12207992 0.13179508 0.15836591 0.14277544; 1'
+                    # idB ='0.645 0.5; -164.35374694 -8.07982561 -89.15798794 -90.25112557; 0.16919848 0.16788037 0.08475228 0.14199692; 1'
+                    # idA = '0.5 0.3; 71.13552081 -33.74445141 39.655877 47.77960281; 0.16803211 0.2 0.1772888 0.1; 1'
+                    # idB = '0.5 0.3; 93.1665 -20.16590306 61.23932585 68.6735067; 0.1 0.1 0.1 0.15333205; 1'
+                    # robA = self.str2robotConfig(idA)
+                    # robB = self.str2robotConfig(idB)
+                    # tester = test_robot(self)
+                    # qq = tester.collision_test(robA,robB,0.4)
+
+
+                    flag_pr = self.check_obstacle_primitive(robA.str2list(),robB.str2list())
                     # # bounding box check, can decrease checking times a lot
                     checkList =[]
-                    flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer,checkList)
-                    if(not tester.self_bounding_collision_test(robA)) and (not tester.self_bounding_collision_test(robB)) and (not flag):
+                    flag = False
+                    # flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer,checkList)
+                    if(not tester.self_bounding_collision_test(robA)) and (not tester.self_bounding_collision_test(robB)) and (not flag) and (not flag_pr):
                         continue
                     #   False-> no collision, True -> have collision
                     
                     count += 1
                     # checkList = []
                     # flag = self.collision_check(np.asarray(robA.str2list()),np.asarray(robB.str2list()),numLayer,checkList)
-                    # self.collision_checkList[(ver,conn_key)] = checkList
-                    # self.collision_checkList[(conn_key,ver)] = checkList
-                    if flag:
-                        # verA.delete_connect_id(conn_key)
-                        # verB.delete_connect_id(ver)
+                    self.collision_checkList[(ver,conn_key)] = checkList
+                    self.collision_checkList[(conn_key,ver)] = checkList
+                    if flag or flag_pr:
+                        self.visitedCollide[(ver,conn_key)] = 1
+                        self.visitedCollide[(conn_key,ver)] = 1
                         queue4delete.append(conn_key)
+                else:
+                    if self.visitedCollide[(ver,conn_key)] == 1 or self.visitedCollide[(conn_key,ver)] == 1:
+                        # if len(self.collision_checkList[(ver,conn_key)]) != 0 or len(self.collision_checkList[(conn_key,ver)]) != 0:
+                        queue4delete.append(conn_key)
+
             for dd in queue4delete:
                 verA.delete_connect_id(dd)
                 verB = gaph.getVertex(dd)
@@ -539,8 +561,7 @@ class PRM(EST):
             else:
                 arr.append(path[i][0][:-3])
 
-    
-    
+      
 def main(arglist):
 # def main():
     inputfilename = arglist[0]

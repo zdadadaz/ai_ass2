@@ -116,11 +116,13 @@ class Graph:
         return self.vertArr[n]
 
     def addVertex(self,key):
-        self.numVertices = self.numVertices + 1
-        newVertex = Vertex(key,self.numVertices)
-        self.vertArr.append(key)
-        self.vertList[key] = newVertex
+        if key not in self.vertList:
+            self.numVertices = self.numVertices + 1
+            newVertex = Vertex(key,self.numVertices)
+            self.vertArr.append(key)
+            self.vertList[key] = newVertex
         return newVertex
+
 
     def getVertex(self,n):
         if n in self.vertList:

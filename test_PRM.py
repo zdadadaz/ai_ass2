@@ -13,13 +13,13 @@ class test_PRM(unittest.TestCase):
         
         # colide
         # check collision more times in long distance one
-        files = ['./testcases/4g1_m2.txt'] 
+        # files = ['./testcases/4g1_m2.txt'] 
 
         # no result
         # files = ['./testcases/4g1_m2.txt','./testcases/5g3_m1.txt']
         
         # use global is enough, or the last with local
-        # files = ['./testcases/3g2_m1.txt','./testcases/3g2_m2.txt', './testcases/3g3_m1.txt']
+        files = ['./testcases/3g2_m1.txt','./testcases/3g2_m2.txt', './testcases/3g3_m1.txt']
         # files = ['./testcases/3g1_m0.txt','./testcases/3g1_m1.txt','./testcases/3g1_m2.txt','./testcases/4g1_m1.txt', './testcases/4g1_m2.txt']
         for i in range(len(files)):
             fileName = files[i].split('/')[-1]

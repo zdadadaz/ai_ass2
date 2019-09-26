@@ -133,7 +133,8 @@ class EST(ProblemSpec):
         points = self.grapple_points
         # 3g2_m1,3g2_m2
         if self.num_grapple_points == 2:
-            Setting['np-rd']=1249901
+            # Setting['np-rd']=1249901
+            Setting['np-rd']=9532
             Setting['random']=22938921
             Setting['ee1Flag']=[True,False]
             Setting['numberSamples_global']=1000
@@ -254,8 +255,8 @@ class EST(ProblemSpec):
             Setting['numberSamples_local']=200
             Setting['numChange']=0
             Setting['angConstraint'] =[]
-            Setting['layer'] = 4
-            Setting['tau'] = 0.3
+            Setting['layer'] = 2
+            Setting['tau'] = 0.4
             return Setting
 
 
